@@ -2,7 +2,7 @@
 #!/usr/bin/python
 
 def identity_class_func(y):
-    """Transform the data into a ternary task, as in qualitative
+    """Leave the data without transformation, as in qualitative
        work and Conway.""" 
     return y
         
