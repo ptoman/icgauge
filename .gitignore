@@ -1,0 +1,9 @@
+/data
+/venv
+/dist/
+/*.egg-info
+*.pyc
+*.tar
+*.pdf
+*.docx
+*.xlsx
