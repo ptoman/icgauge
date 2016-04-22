@@ -63,9 +63,11 @@ def build_dataset(reader, phi_list, class_func, vectorizer=None):
             features = Counter()
             for phi in phi_list:
                 cur_feats = phi(paragraph)
-                # Assert we won't accidentally blow away data
-                assert len(features.viewkeys() & cur_feats.viewkeys()) == 0
-                features += cur_feats
+                # If we won't accidentally blow away data, merge 'em.
+                overlap_feature_names = features.viewkeys() & cur_feats.viewkeys()
+                if len(overlap_feature_names) > 0:
+                    print "Note: Overlap features are ", overlap_feature_names
+                features |= cur_feats
             feat_dicts.append(features)
     
     # In training, we want a new vectorizer, but in 
