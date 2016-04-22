@@ -14,7 +14,7 @@ import icgauge
 from icgauge import experiment_frameworks
 
 
-print "Toy framework:"
+print "Simple framework:"
 print "  Data:      toy.json"
 print "  Features:  manual content flags, modals, length,"
 print "             hedges, conjunctives, punctuation"
@@ -45,27 +45,26 @@ Simple framework:
              hedges, conjunctives, punctuation
   Labels:    original 7-point scale
   Model:     logistic regression (classification)
-  
-('Best params', {'penalty': 'l1', 'C': 0.8, 'fit_intercept': True})
-Best score: 0.333
+
+('Best params', {'penalty': 'l2', 'C': 2.0, 'fit_intercept': True})
+Best score: 0.253
              precision    recall  f1-score   support
 
-          1      0.375     0.750     0.500         4
-          2      0.500     0.333     0.400         3
-          3      0.286     0.500     0.364         4
-          4      0.000     0.000     0.000         1
-          5      0.000     0.000     0.000         5
-          6      0.000     0.000     0.000         3
-          7      0.250     1.000     0.400         1
+          1      0.455     0.833     0.588         6
+          2      0.000     0.000     0.000         3
+          3      0.500     0.167     0.250         6
+          4      0.000     0.000     0.000         0
+          5      0.000     0.000     0.000         4
+          6      0.000     0.000     0.000         2
 
-avg / total      0.209     0.333     0.241        21
+avg / total      0.273     0.286     0.239        21
 
-[[3 0 1 0 0 0 0]
- [1 1 1 0 0 0 0]
- [1 1 2 0 0 0 0]
- [1 0 0 0 0 0 0]
- [2 0 2 0 0 0 1]
- [0 0 1 0 0 0 2]
- [0 0 0 0 0 0 1]]
+[[5 0 0 1 0 0]
+ [2 0 1 0 0 0]
+ [1 2 1 1 1 0]
+ [0 0 0 0 0 0]
+ [3 0 0 1 0 0]
+ [0 0 0 1 1 0]]
+Correlation:  0.382997914546
 (Rows are truth; columns are predictions)
 """

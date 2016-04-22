@@ -5,6 +5,7 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 from collections import Counter
+from scipy.stats.stats import pearsonr
 
 import data_readers
 import feature_extractors as fe
@@ -15,7 +16,7 @@ import utils
 # May eventually add other frameworks (e.g., neural network, rule-based)
 
 
-def build_dataset(reader, phi_list, class_func, vectorizer=None):
+def build_dataset(reader, phi_list, class_func, vectorizer=None, verbose=False):
     """Core general function for building experimental
     hand-generated feature datasets.
     
@@ -65,7 +66,7 @@ def build_dataset(reader, phi_list, class_func, vectorizer=None):
                 cur_feats = phi(paragraph)
                 # If we won't accidentally blow away data, merge 'em.
                 overlap_feature_names = features.viewkeys() & cur_feats.viewkeys()
-                if len(overlap_feature_names) > 0:
+                if verbose and len(overlap_feature_names) > 0:
                     print "Note: Overlap features are ", overlap_feature_names
                 features |= cur_feats
             feat_dicts.append(features)
@@ -172,9 +173,10 @@ def experiment_features(
     
     # Report:
     if verbose:
-        print(classification_report(y_assess, predictions, digits=3))
-        print(confusion_matrix(y_assess, predictions))
-        print("(Rows are truth; columns are predictions)")
+        print classification_report(y_assess, predictions, digits=3)
+        print confusion_matrix(y_assess, predictions)
+        print "Correlation: ", pearsonr(y_assess, predictions)[0]
+        print "(Rows are truth; columns are predictions)"
         
     # Return the overall score:
     return score_func(y_assess, predictions)
