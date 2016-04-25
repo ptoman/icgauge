@@ -144,6 +144,9 @@ def experiment_features(
     -------
     float
         The overall scoring metric as determined by `score_metric`.
+
+    np.array
+        The confusion matrix (rows are truth, columns are predictions)
     
     """        
     # Train dataset:
@@ -174,9 +177,51 @@ def experiment_features(
     # Report:
     if verbose:
         print classification_report(y_assess, predictions, digits=3)
-        print confusion_matrix(y_assess, predictions)
+        print confusion_matrix(y_assess, predictions, labels=[0,1,2,3,4,5,6])
         print "Correlation: ", pearsonr(y_assess, predictions)[0]
         print "(Rows are truth; columns are predictions)"
         
     # Return the overall score:
-    return score_func(y_assess, predictions)
+    return score_func(y_assess, predictions), confusion_matrix(y_assess, predictions)
+    
+def experiment_features_iterated(
+        train_reader=data_readers.toy, 
+        assess_reader=None, 
+        train_size=0.7,
+        phi_list=[fe.manual_content_flags], 
+        class_func=lt.identity_class_func,
+        train_func=training.fit_maxent_with_crossvalidation,
+        score_func=utils.safe_weighted_f1,
+        verbose=True,
+        iterations=1):
+    """
+    Generic iterated experimental framework for hand-crafted features. 
+    """  
+    correlation_overall = []
+    conf_matrix_overall = None
+    while len(correlation_overall) < iterations:
+        try:
+            correlation_local, conf_matrix_local = experiment_features(
+                train_reader=train_reader, 
+                assess_reader=assess_reader, 
+                train_size=train_size,
+                phi_list=phi_list, 
+                class_func=class_func,
+                train_func=train_func,
+                score_func=score_func,
+                verbose=False)
+                
+            correlation_overall.append(correlation_local[0])
+            
+            if conf_matrix_overall is None:
+                conf_matrix_overall = conf_matrix_local
+            else: 
+                conf_matrix_overall += conf_matrix_local
+        except (ValueError,UserWarning) as e:
+            print e
+    
+    if verbose:
+        print correlation_overall
+        print conf_matrix_overall
+    
+    return correlation_overall, conf_matrix_overall

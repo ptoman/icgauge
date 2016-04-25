@@ -1,4 +1,5 @@
-nltk
+scipy
 numpy
 sklearn
-scipy
+nltk
+git+https://github.com/fabianp/mord.git

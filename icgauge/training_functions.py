@@ -3,8 +3,10 @@
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.grid_search import GridSearchCV
+import mord
 
-def fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid, scoring='f1_macro'): 
+def fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid, 
+                                        scoring='f1_macro', verbose=False): 
     """Fit a classifier with hyperparmaters set via cross-validation.
 
     Parameters
@@ -43,15 +45,18 @@ def fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid, scoring='
     # Find the best model within param_grid:
     crossvalidator = GridSearchCV(basemod, param_grid, cv=cv, scoring=scoring)
     crossvalidator.fit(X, y)
-    # Report some information:
-    print("Best params", crossvalidator.best_params_)
-    print("Best score: %0.03f" % crossvalidator.best_score_)
+    if verbose:
+        # Report some information:
+        print("Best params", crossvalidator.best_params_)
+        print("Best score: %0.03f" % crossvalidator.best_score_)
     # Return the best model found:
     return crossvalidator.best_estimator_
     
 def fit_maxent_with_crossvalidation(X, y):
-    """A MaxEnt model of dataset with hyperparameter 
-    cross-validation. Some notes:
+    """A classification model of dataset with hyperparameter 
+    cross-validation. Maximum entropy/logistic regression variant.
+    
+    Some notes:
         
     * 'fit_intercept': whether to include the class bias feature.
     * 'C': weight for the regularization term (smaller is more regularized).
@@ -81,4 +86,61 @@ def fit_maxent_with_crossvalidation(X, y):
     param_grid = {'fit_intercept': [True, False], 
                   'C': [0.4, 0.6, 0.8, 1.0, 2.0, 3.0],
                   'penalty': ['l1','l2']}    
-    return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid)
+    return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
+                                               verbose=False)
+    
+    
+def fit_logistic_it_with_crossvalidation(X, y):
+    """An ordinal model of dataset with hyperparameter 
+    cross-validation.  Immediate-Threshold (logistic/threshold) variant.
+    
+    Parameters & returns as per other training functions.
+    """    
+    
+    basemod = mord.LogisticIT()
+    cv = 5
+    param_grid = {'alpha': [0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0]}    
+    return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
+                                               verbose=False)
+                                               
+def fit_logistic_at_with_crossvalidation(X, y):
+    """An ordinal model of dataset with hyperparameter 
+    cross-validation.  All-Threshold (logistic/threshold) variant.
+    Recommended over Intermediate-Threshold variant in Rennie and Srebro 2005.
+    
+    Parameters & returns as per other training functions.
+    """    
+    
+    basemod = mord.LogisticAT()
+    cv = 5
+    param_grid = {'alpha': [0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0]}    
+    return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
+                                               verbose=False)
+                                               
+def fit_logistic_or_with_crossvalidation(X, y):
+    """An ordinal model of dataset with hyperparameter 
+    cross-validation.  Ordinal Ridge (regression) variant.
+    
+    Parameters & returns as per other training functions.
+    """    
+    
+    basemod = mord.OrdinalRidge()
+    cv = 5
+    param_grid = {'fit_intercept': [True, False], 
+                  'alpha': [0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0],
+                  'normalize': [True, False]}    
+    return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
+                                               verbose=False)
+                                               
+def fit_logistic_mcl_with_crossvalidation(X, y):
+    """An ordinal model of dataset with hyperparameter 
+    cross-validation.  Multiclass Logistic (logistic/classification) variant.
+    
+    Parameters & returns as per other training functions.
+    """    
+    
+    basemod = mord.MulticlassLogistic()
+    cv = 5
+    param_grid = {'alpha': [0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0]}
+    return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
+                                               verbose=False)
