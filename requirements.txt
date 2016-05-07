@@ -3,3 +3,5 @@ numpy
 sklearn
 nltk
 git+https://github.com/fabianp/mord.git
+https+https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.8.0-cp27-none-linux_x86_64.whl
+

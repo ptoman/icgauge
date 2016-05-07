@@ -2,11 +2,23 @@
 #!/usr/bin/python
 
 from collections import Counter
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import word_tokenize, sent_tokenize
 import numpy as np
+from sklearn.decomposition import PCA
 import re
+import os
 
+import utils
 import utils_wordlists
+import utils_parsing
+
+
+GLOVE_SIZE = 50 # 50 is appropriate -- bigger starts to seriously 
+                # outpace words per paragraph
+path_to_glove = os.environ.get('GLV_HOME')
+if not path_to_glove:
+  raise ImportError("GLV_HOME not defined as environmental variable")
+glove = None
 
 # Note: Best to use independent namespaces for each key,
 # since multiple feature functions can be grouped together.
@@ -133,11 +145,121 @@ def punctuation_presence(paragraph):
     result["punctuation_freq"] = 1.0*result["punctuation_count_token"] / len(tokens)
     
     return result
+
+def determiner_usage(paragraph, verbose=False):
+  """
+  Gets the count of times determiners are used per context.
+
+  Central insight:
+     Differences in determiner usage reflect whether the author assumes
+     the noun phrase is a category that is coherent within common knowledge. 
+     For instance:
+        * We observe the depravity of our age
+        * Poverty, hunger, mental illness - they were the inevitable result 
+          of life in this world.
+        * the Reagan administration is testing the gullibility of world opinion
+        * Abortion threatens the moral and Christian character of this nation
+     Note that the rule fails when the determiner is part of the subject 
+     of the sentence, because of the discourse rule that subjects
+     are almost always shared common knowledge (old->new info).
+
+  Returns:
+    dict, potentially with keys of:
+       old info (for # times the determiner is in the subject,
+             e.g., "The man wore a hat" -- the man was probably already 
+             introduced earlier in the paragraph)
+       knowledge assumed (for # times the determine assumes facts,
+             e.g., "Some man wore the hat" -- err, what hat?)
+       SBAR (for # times a determiner was accompanied by an SBAR, 
+             e.g., "I saw the man wearing the hat" -- the man both assumed 
+             and explained in terms of the knowledge assumed, "the hat")
+
+  Notes:
+    - Dependency parse may be better (cleaner and more accurate)
+    - Might benefit from excluding proper noun phrases like country names
+  """
+  DETERMINER_LIST = ["the", "The"]
+  features = Counter()
+  sentences = sent_tokenize(paragraph)
+  for t in utils_parsing.get_trees(sentences):
+    sent_not_shown = True
+    for pos in t.treepositions('postorder'):
+      if t[pos] in DETERMINER_LIST:
+        phrase_of_interest = " ".join(t[pos[:-2]].leaves())
+        while len(pos):
+          match = utils_parsing.check_for_match(t, pos)
+          if match:
+            features[match] += 1
+            if verbose:
+              if sent_not_shown:
+                print " ".join(t.leaves())
+                sent_not_shown = False
+              print "'%s' -- %s" % (phrase_of_interest, match)
+            break
+          pos = pos[:-1]
+  return features
+
+def dimensional_decomposition(paragraph, num_dimensions_to_accumulate=5):
+  """ Gets the extent to which the word embeddings used in a paragraph
+  can be reduced to to low-dimensional space.  Low-dimensional space is
+  derived by PCA.
+
+  Central insight:
+     If the words all lay in a low-dimensional space, then likely
+     they are expressing variations on the same theme rather 
+     than nuanced argument.  Confounding variable of paragraph length
+     actually seems good here.
+
+  Empirical results:
+     This works, and it captures something about content rather than
+     just matching on highly functional words and phrases.
+     On toy dataset, the first dimension has a correlation of -0.51
+     with the score -- this is extremely encouraging!  The second-fifth
+     cumulative dimensions are even stronger, all at about -0.56.
+
+  Returns:
+     dictionary, with keys:
+        cum_pca_var_expl_# (where # is in range 
+           [0, num_dimensions_to_accumulate)); each value gives the amount
+           of variance explained when that number of dimensions 
+           is considered
+  """
+  global glove
+  if glove == None:
+    glove = utils.glove2dict(os.path.join(path_to_glove, 
+            'glove.6B.%dd.txt' % GLOVE_SIZE))
+
+  approx_num_words = int(1.5*len(paragraph.split()))
+  word_vector = np.zeros((approx_num_words, GLOVE_SIZE))
+  row = 0
+  words = [] # for tracking purposes; not passed back
+  for sent in sent_tokenize(paragraph):
+    for word in word_tokenize(sent):
+      word = word.lower()
+      if word in glove and word not in words:
+        word_vector[row] = glove[word]
+        words.append(word)
+        row += 1
+  word_vector = word_vector[:row,:]
+  #print words
+
+  pca = PCA()
+  pca.fit(word_vector)
+
+  features = Counter()
+  for i in range(num_dimensions_to_accumulate):
+    features["cum_pca_var_expl_%d" % i] = np.sum(pca.explained_variance_ratio_[:i+1])
+
+  return features
     
-\
+
 # Other potentially useful:
-# - syntactic: passive voice
+# - syntactic: passive voice, count of SBARs, depth of parse tree
 # - discourse: argument structure (statement-assessment as derived from but/and/because), 
-#   sentiment, old->new information
-# - lexical: modal verbs, but/and/because, presence of hedges
-# - morphological: -ly on adjectives of degree
+#     sentiment both in terms of consistency and amount/strength, 
+#     look up phrases in aphorism dictionary
+# - lexical: most, more and other indicators of degree, misspellings
+# - morphological: -ly on adjectives of degree, -est for superlatives
+# - higher level: alignment of sentiment with determinism (draws on linguistic 
+#     intergroup bias)
+# - semantic: something compositional, something regarding argument structure

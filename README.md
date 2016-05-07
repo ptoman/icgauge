@@ -11,5 +11,9 @@ This project has four main directories:
 * sample_data: Sample data supporting the framework.  Contains examples of each level of complexity.
 * tests: Contains an abuse of the testing framework to verify all data has the expected format, plus any actual tests that might get written.
 
+To run all the experiments, you'll want to have the following environmental variables set:
+* `GLV_HOME`: location of GloVe vector .txt files
+* `STANFORD_NLP_HOME`: location of Stanford NLP .jar files
+
 To run the toy experiment, use the following at this top-level directory:
     `python -m experiments.toy`

@@ -91,7 +91,7 @@ def experiment_features(
         train_size=0.7,
         phi_list=[fe.manual_content_flags], 
         class_func=lt.identity_class_func,
-        train_func=training.fit_maxent_with_crossvalidation,
+        train_func=training.fit_logistic_at_with_crossvalidation,
         score_func=utils.safe_weighted_f1,
         verbose=True):
     """Generic experimental framework for hand-crafted features. 
@@ -123,7 +123,7 @@ def experiment_features(
         design. If `class_func` returns None for a label, then that 
         item is ignored.
        
-    train_func : model wrapper (default: `fit_maxent_with_crossvalidation`)
+    train_func : model wrapper (default: `fit_logistic_at_with_crossvalidation`)
         Any function that takes a feature matrix and a label list
         as its values and returns a fitted model with a `predict`
         function that operates on feature matrices.
@@ -190,7 +190,7 @@ def experiment_features_iterated(
         train_size=0.7,
         phi_list=[fe.manual_content_flags], 
         class_func=lt.identity_class_func,
-        train_func=training.fit_maxent_with_crossvalidation,
+        train_func=training.fit_logistic_at_with_crossvalidation,
         score_func=utils.safe_weighted_f1,
         verbose=True,
         iterations=1):
