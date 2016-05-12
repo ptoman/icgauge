@@ -251,10 +251,34 @@ def dimensional_decomposition(paragraph, num_dimensions_to_accumulate=5):
     features["cum_pca_var_expl_%d" % i] = np.sum(pca.explained_variance_ratio_[:i+1])
 
   return features
-    
+
+def syntactic_heads(paragraph):
+  """ Returns the count for the usage of S, SBAR units in the syntactic parse,
+  plus the mean height of the tree  """
+  KEPT_FEATURES = ['S', 'SBAR']
+
+  # Increment the head of each phrase
+  counts_of_heads = Counter()
+  tree_heights = []
+  sentences = sent_tokenize(paragraph)
+  for t in get_trees(sentences):  
+    for st in t.subtrees():
+      counts_of_heads[st.label()] += 1
+    tree_heights.append(t.height())
+
+  # Keep only the heads in KEPT_FEATURES
+  features = dict((key, counts_of_heads[key]) for 
+    key in counts_of_heads if key in KEPT_FEATURES)
+  # Add in the features related to tree height
+  features["mean_tree_height"] = np.mean(tree_heights)
+  features["median_tree_height"] = np.median(tree_heights)
+  features["max_tree_height"] = np.max(tree_heights)
+  features["min_tree_height"] = np.min(tree_heights)
+  print features
+
 
 # Other potentially useful:
-# - syntactic: passive voice, count of SBARs, depth of parse tree
+# - syntactic: passive voice, depth of parse tree
 # - discourse: argument structure (statement-assessment as derived from but/and/because), 
 #     sentiment both in terms of consistency and amount/strength, 
 #     look up phrases in aphorism dictionary
