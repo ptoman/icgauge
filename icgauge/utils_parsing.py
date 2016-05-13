@@ -3,6 +3,7 @@
 
 from nltk.tree import Tree
 from nltk.parse.stanford import StanfordParser
+from nltk.tokenize import sent_tokenize
 import os
 
 path_to_stanford_nlp = os.environ.get('STANFORD_NLP_HOME')
@@ -13,6 +14,10 @@ if not path_to_stanford_nlp:
 english_parser = StanfordParser(os.path.join(path_to_stanford_nlp,'stanford-parser.jar'),
                    os.path.join(path_to_stanford_nlp, 'stanford-parser-3.4.1-models.jar'))
 
+def get_trees_given_paragraph(paragraph):
+  """ Yields the tree for each sentence """
+  sentences = sent_tokenize(paragraph)
+  return [tree for tree in get_trees(sentences)]
 
 def get_trees(sentences):
   """ Yields the tree for each sentence """
