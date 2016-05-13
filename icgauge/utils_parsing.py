@@ -106,6 +106,17 @@ def check_for_match(t, pos):
     pass
   return None
 
+def get_nouns_verbs(list_of_sentences):
+  """ Returns the noun and verb tokens in a sentence as tuples: (word, ['v'|'n']) """
+  ALLOWABLE = ['NN', 'NNS', 'NNP', 'NNPS', 
+               'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
+  sentence_tokens = []
+  for source_tree in get_trees(list_of_sentences):
+    source_poses = source_tree.pos()
+    for source_pos in source_poses:
+      if source_pos[1] in ALLOWABLE:
+        sentence_tokens.append((source_pos[0], source_pos[1][0].lower()))
+  return sentence_tokens
 
 
 

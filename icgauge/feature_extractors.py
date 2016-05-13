@@ -2,15 +2,18 @@
 #!/usr/bin/python
 
 from collections import Counter
-from nltk.tokenize import word_tokenize, sent_tokenize
-import numpy as np
-from sklearn.decomposition import PCA
 import re
 import os
+
+import numpy as np
+from sklearn.decomposition import PCA
+
+from nltk.tokenize import word_tokenize, sent_tokenize
 
 import utils
 import utils_wordlists
 import utils_parsing
+import utils_similarity
 
 
 GLOVE_SIZE = 50 # 50 is appropriate -- bigger starts to seriously 
@@ -63,10 +66,12 @@ def unigrams(paragraph):
 
 def length(paragraph):
     """
-    Produces length-related features:
-        - number of characters
-        - number of white-space separated words (tokens)
-        - mean length of white-space separated tokens
+    Produces length-related features. Rocket goes to the predictive
+    performance of just this feature on the toy data (correlation between it
+    and the human scores):
+        - number of characters ==> 0.61 correlation (good feature)
+        - number of white-space separated words (tokens) => 0.59
+        - mean length of white-space separated tokens => 0.13
     """
     tokens = word_tokenize(paragraph)
     result = Counter()
@@ -154,14 +159,18 @@ def determiner_usage(paragraph, verbose=False):
      Differences in determiner usage reflect whether the author assumes
      the noun phrase is a category that is coherent within common knowledge. 
      For instance:
-        * We observe the depravity of our age
-        * Poverty, hunger, mental illness - they were the inevitable result 
+        * We observe _the depravity_ of our age
+        * Poverty, hunger, mental illness - they were _the inevitable result_ 
           of life in this world.
-        * the Reagan administration is testing the gullibility of world opinion
-        * Abortion threatens the moral and Christian character of this nation
-     Note that the rule fails when the determiner is part of the subject 
-     of the sentence, because of the discourse rule that subjects
-     are almost always shared common knowledge (old->new info).
+        * the Reagan administration is testing _the gullibility_ of world opinion
+        * Abortion threatens _the moral and Christian character_ of this nation
+     In all of these (pulled from low-complexity paragraphs), the author
+     is assuming/presupposing a state of the world without having established its truth.
+     Note that the presence of a detreminer in the subject doesn't have this
+     meaning as often, because of the discourse rule that subjects
+     are almost always *already* shared common knowledge -- we would expect subjects
+     to often begin with "the" because they almost always have been introduced in 
+     a prior sentence.
 
   Returns:
     dict, potentially with keys of:
@@ -252,33 +261,73 @@ def dimensional_decomposition(paragraph, num_dimensions_to_accumulate=5):
 
   return features
 
-def syntactic_heads(paragraph):
+def syntactic_parse_features(paragraph):
   """ Returns the count for the usage of S, SBAR units in the syntactic parse,
-  plus the mean height of the tree  """
+  plus statistics about the height of the trees  """
   KEPT_FEATURES = ['S', 'SBAR']
 
-  # Increment the head of each phrase
+  # Increment the count for the part-of-speech of each head of phrase
   counts_of_heads = Counter()
   tree_heights = []
   sentences = sent_tokenize(paragraph)
-  for t in get_trees(sentences):  
+  for t in utils_parsing.get_trees(sentences):  
     for st in t.subtrees():
       counts_of_heads[st.label()] += 1
     tree_heights.append(t.height())
 
-  # Keep only the heads in KEPT_FEATURES
-  features = dict((key, counts_of_heads[key]) for 
+  # Keep only the head parts-of-speech that appear in KEPT_FEATURES
+  features = dict(("syntactic_head_"+key, counts_of_heads[key]) for 
     key in counts_of_heads if key in KEPT_FEATURES)
+  features = Counter(features)
   # Add in the features related to tree height
   features["mean_tree_height"] = np.mean(tree_heights)
   features["median_tree_height"] = np.median(tree_heights)
   features["max_tree_height"] = np.max(tree_heights)
   features["min_tree_height"] = np.min(tree_heights)
-  print features
+  return features
 
+def kannan_ambili(paragraph):
+  """ Semantic coherence as in Kannan-Ambili MS thesis at
+  http://www.ai.uga.edu/sites/default/files/theses/KannanAmbili_aardra_2014Dec_MS.pdf
+
+  This is the only feature in the existing literature designed specifically for 
+  the integrative complexity task.
+
+  Description:
+    This metric considers only nouns and verbs, and it uses a 
+    function of path length and depth of subsumer in the WordNet
+    hierarchy to generate a self-similarity score for the paragraph.
+    The score is based on the WordNet similarities between the words
+    in the first sentence (assumed to be the topic sentence) and the
+    other words in the paragraph.
+
+  Empirical results:
+    This feature correlates with toy data scores at 0.23.
+  """
+  sentences = sent_tokenize(paragraph)
+  if len(sentences) < 2:
+    return Counter()
+  first_sentence = sentences[0]
+  first_sentence_tokens = utils_parsing.get_nouns_verbs([first_sentence])
+  rest_sentences = sentences[1:]
+  rest_sentences_tokens = utils_parsing.get_nouns_verbs(rest_sentences) 
+
+  similarities = np.zeros((len(first_sentence_tokens), len(rest_sentences_tokens)))
+  for i, tuple1 in enumerate(first_sentence_tokens):
+    for j, tuple2 in enumerate(rest_sentences_tokens):
+      similarities[i,j] = utils_similarity.similarity_li(tuple1, tuple2)
+
+  paragraph_semsim = np.exp(-np.sum(similarities.mean(axis=1)))
+
+  return Counter({"kannan_ambili": paragraph_semsim})
+
+
+# TODO:
+# we need to get parses and keep them stored in parallel to the data --
+# recreating the parses each time is killing the runtime
 
 # Other potentially useful:
-# - syntactic: passive voice, depth of parse tree
+# - syntactic: passive voice
 # - discourse: argument structure (statement-assessment as derived from but/and/because), 
 #     sentiment both in terms of consistency and amount/strength, 
 #     look up phrases in aphorism dictionary

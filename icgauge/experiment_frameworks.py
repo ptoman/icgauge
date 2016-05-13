@@ -64,6 +64,8 @@ def build_dataset(reader, phi_list, class_func, vectorizer=None, verbose=False):
             features = Counter()
             for phi in phi_list:
                 cur_feats = phi(paragraph)
+                if cur_feats is None:
+                    continue
                 # If we won't accidentally blow away data, merge 'em.
                 overlap_feature_names = features.viewkeys() & cur_feats.viewkeys()
                 if verbose and len(overlap_feature_names) > 0:
