@@ -1,13 +1,15 @@
 #!/usr/bin/python
 ##
-## Usage: python data_tests.py 
+## Usage: python -m unittest tests.data_tests
 ##
+
+from icgauge import utils_parsing
 
 import unittest
 import os
 import json
 
-class DataTest(unittest.TestCase):
+class DataTests(unittest.TestCase):
     """
     Abuse of testing framework to verify that all
     data are in the expected format.
@@ -24,22 +26,22 @@ class DataTest(unittest.TestCase):
     def testFormatOfSampleData(self):
         """ Test the format against files in sample_data """
         print "DataTest:testFormatOfSampleData"
-        self.helper_testFormat("../sample_data")
+        self.helper_testFormat("sample_data")
         
     def testFormatOfData(self):
         """ Test the format against files in sample_data """
         print "DataTest:testFormatOfData"
-        self.helper_testFormat("../data")
+        self.helper_testFormat("data")
 
     def testFormatOfSampleData(self):
         """ Test the format against files in sample_data """
         print "DataTest:testFormatOfSampleData"
-        self.helper_testAscii("../sample_data")
+        self.helper_testAscii("sample_data")
         
     def testFormatOfData(self):
         """ Test the format against files in sample_data """
         print "DataTest:testFormatOfData"
-        self.helper_testAscii("../data")
+        self.helper_testAscii("data")
                 
     def helper_testFormat(self, dirname):
         """ 
@@ -57,6 +59,7 @@ class DataTest(unittest.TestCase):
                         self.assertIn("paragraph", item, "The `paragraph` property is missing")
                         self.assertIsNotNone(item["paragraph"], "A `paragraph` content is missing")
                         self.assertGreater(len(item["paragraph"]), 0, "A `paragraph` content has no length")
+
         
                         if "score" in item:
                             self.assertIsNotNone(item["score"], "A `score` content is missing")
