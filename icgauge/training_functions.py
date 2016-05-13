@@ -103,6 +103,19 @@ def fit_logistic_it_with_crossvalidation(X, y):
     return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
                                                verbose=False)
                                                
+def fit_logistic_at(X, y):
+    """An ordinal model of dataset without hyperparameter 
+    cross-validation -- uses defaults.  
+    All-Threshold (logistic/threshold) variant, recommended over 
+    Intermediate-Threshold variant in Rennie and Srebro 2005.
+    
+    Parameters & returns as per other training functions.
+    """    
+    
+    basemod = mord.LogisticAT() 
+    basemod.fit(X,y)
+    return basemod
+
 def fit_logistic_at_with_crossvalidation(X, y):
     """An ordinal model of dataset with hyperparameter 
     cross-validation.  All-Threshold (logistic/threshold) variant.

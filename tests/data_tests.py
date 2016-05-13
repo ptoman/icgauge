@@ -29,7 +29,7 @@ class DataTests(unittest.TestCase):
     def testFormatOfData(self):
         """ Test the format against files in sample_data """
         print "DataTest:testFormatOfData"
-        #self.helper_testFormat("data")
+        self.helper_testFormat("data")
 
     def testFormatOfSampleData(self):
         """ Test the format against files in sample_data """
@@ -39,7 +39,7 @@ class DataTests(unittest.TestCase):
     def testFormatOfData(self):
         """ Test the format against files in sample_data """
         print "DataTest:testFormatOfData"
-        #self.helper_testAscii("data")
+        self.helper_testAscii("data")
                 
     def helper_testFormat(self, dirname):
         """ 
@@ -57,8 +57,6 @@ class DataTests(unittest.TestCase):
                         self.assertIn("paragraph", item, "The `paragraph` property is missing")
                         self.assertIsNotNone(item["paragraph"], "A `paragraph` content is missing")
                         self.assertGreater(len(item["paragraph"]), 0, "A `paragraph` content has no length")
-                        print "test!"
-                        print utils_parsing.get_trees_given_paragraph(item["paragraph"])
         
                         if "score" in item:
                             self.assertIsNotNone(item["score"], "A `score` content is missing")

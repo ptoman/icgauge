@@ -9,6 +9,7 @@ import numpy as np
 from sklearn.decomposition import PCA
 
 from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk import Tree
 
 import utils
 import utils_wordlists
@@ -26,7 +27,7 @@ glove = None
 # Note: Best to use independent namespaces for each key,
 # since multiple feature functions can be grouped together.
 
-def manual_content_flags(paragraph):
+def manual_content_flags(paragraph, unused_parse):
     """
     Baseline feature extractor, based on manual. Produces a feature function 
     that detects the presence of the example "content flag" phrases in the 
@@ -60,11 +61,11 @@ def manual_content_flags(paragraph):
 
     return feature_presence
     
-def unigrams(paragraph):
+def unigrams(paragraph, unused_parse):
     """Produces a feature function on unigrams."""
     return Counter(word_tokenize(paragraph))
 
-def length(paragraph):
+def length(paragraph, unused_parse):
     """
     Produces length-related features. Rocket goes to the predictive
     performance of just this feature on the toy data (correlation between it
@@ -109,7 +110,7 @@ def wordlist_presence(wordlist_func, paragraph):
     
     return presence
 
-def modal_presence(paragraph):
+def modal_presence(paragraph, unused_parse):
     modals = wordlist_presence(utils_wordlists.get_modals, paragraph)
     tokens = word_tokenize(paragraph)
     
@@ -120,21 +121,21 @@ def modal_presence(paragraph):
     
     return modals
     
-def hedge_presence(paragraph):
+def hedge_presence(paragraph, unused_parse):
     hedges = wordlist_presence(utils_wordlists.get_hedges, paragraph)
     hedges["hedge_count_token"] = np.sum( \
         [value for key, value in hedges.items()])    
     hedges["hedge_count_type"] = len(hedges) - 1 # -1 bc *_count_token
     return hedges
     
-def conjunctives_presence(paragraph):
+def conjunctives_presence(paragraph, unused_parse):
     conjunctives = wordlist_presence(utils_wordlists.get_conjunctives, paragraph)
     conjunctives["conjunctive_count_token"] = np.sum( \
         [value for key, value in conjunctives.items()])    
     conjunctives["conjunctive_count_type"] = len(conjunctives) - 1 # -1 bc *_count_token
     return conjunctives
 
-def punctuation_presence(paragraph):
+def punctuation_presence(paragraph, unused_parse):
     punctuation = utils_wordlists.get_punctuation()
     tokens = word_tokenize(paragraph.lower())
     
@@ -151,7 +152,7 @@ def punctuation_presence(paragraph):
     
     return result
 
-def determiner_usage(paragraph, verbose=False):
+def determiner_usage(paragraph, parse, verbose=False):
   """
   Gets the count of times determiners are used per context.
 
@@ -189,8 +190,8 @@ def determiner_usage(paragraph, verbose=False):
   """
   DETERMINER_LIST = ["the", "The"]
   features = Counter()
-  sentences = sent_tokenize(paragraph)
-  for t in utils_parsing.get_trees(sentences):
+  for t_string in parse:
+    t = Tree.fromstring(t_string)
     sent_not_shown = True
     for pos in t.treepositions('postorder'):
       if t[pos] in DETERMINER_LIST:
@@ -198,7 +199,7 @@ def determiner_usage(paragraph, verbose=False):
         while len(pos):
           match = utils_parsing.check_for_match(t, pos)
           if match:
-            features[match] += 1
+            features["determiner_"+match] += 1
             if verbose:
               if sent_not_shown:
                 print " ".join(t.leaves())
@@ -208,7 +209,7 @@ def determiner_usage(paragraph, verbose=False):
           pos = pos[:-1]
   return features
 
-def dimensional_decomposition(paragraph, num_dimensions_to_accumulate=5):
+def dimensional_decomposition(paragraph, unused_parse, num_dimensions_to_accumulate=5):
   """ Gets the extent to which the word embeddings used in a paragraph
   can be reduced to to low-dimensional space.  Low-dimensional space is
   derived by PCA.
@@ -226,6 +227,9 @@ def dimensional_decomposition(paragraph, num_dimensions_to_accumulate=5):
      with the score -- this is extremely encouraging!  The second-fifth
      cumulative dimensions are even stronger, all at about -0.56.
 
+     Best to use a smaller number of dimensions (like 50), else we risk
+     a highly overdetermined system of equations when heading into PCA.
+
   Returns:
      dictionary, with keys:
         cum_pca_var_expl_# (where # is in range 
@@ -241,7 +245,7 @@ def dimensional_decomposition(paragraph, num_dimensions_to_accumulate=5):
   approx_num_words = int(1.5*len(paragraph.split()))
   word_vector = np.zeros((approx_num_words, GLOVE_SIZE))
   row = 0
-  words = [] # for tracking purposes; not passed back
+  words = []
   for sent in sent_tokenize(paragraph):
     for word in word_tokenize(sent):
       word = word.lower()
@@ -261,7 +265,7 @@ def dimensional_decomposition(paragraph, num_dimensions_to_accumulate=5):
 
   return features
 
-def syntactic_parse_features(paragraph):
+def syntactic_parse_features(paragraph, parse):
   """ Returns the count for the usage of S, SBAR units in the syntactic parse,
   plus statistics about the height of the trees  """
   KEPT_FEATURES = ['S', 'SBAR']
@@ -269,8 +273,8 @@ def syntactic_parse_features(paragraph):
   # Increment the count for the part-of-speech of each head of phrase
   counts_of_heads = Counter()
   tree_heights = []
-  sentences = sent_tokenize(paragraph)
-  for t in utils_parsing.get_trees(sentences):  
+  for t_string in parse:  
+    t = Tree.fromstring(t_string)
     for st in t.subtrees():
       counts_of_heads[st.label()] += 1
     tree_heights.append(t.height())
@@ -280,13 +284,14 @@ def syntactic_parse_features(paragraph):
     key in counts_of_heads if key in KEPT_FEATURES)
   features = Counter(features)
   # Add in the features related to tree height
-  features["mean_tree_height"] = np.mean(tree_heights)
-  features["median_tree_height"] = np.median(tree_heights)
-  features["max_tree_height"] = np.max(tree_heights)
-  features["min_tree_height"] = np.min(tree_heights)
+  features["tree_height_mean"] = np.mean(tree_heights)
+  features["tree_height_median"] = np.median(tree_heights)
+  features["tree_height_max"] = np.max(tree_heights)
+  features["tree_height_min"] = np.min(tree_heights)
+  features["tree_height_spread"] = np.max(tree_heights) - np.min(tree_heights)
   return features
 
-def kannan_ambili(paragraph):
+def kannan_ambili(paragraph, parse):
   """ Semantic coherence as in Kannan-Ambili MS thesis at
   http://www.ai.uga.edu/sites/default/files/theses/KannanAmbili_aardra_2014Dec_MS.pdf
 
@@ -294,23 +299,25 @@ def kannan_ambili(paragraph):
   the integrative complexity task.
 
   Description:
-    This metric considers only nouns and verbs, and it uses a 
-    function of path length and depth of subsumer in the WordNet
-    hierarchy to generate a self-similarity score for the paragraph.
+    This metric uses a function of path length and depth of subsumer of
+    word pairs (nouns and verbs only) in the WordNet hierarchy to generate 
+    a self-similarity score for the paragraph.
     The score is based on the WordNet similarities between the words
     in the first sentence (assumed to be the topic sentence) and the
-    other words in the paragraph.
+    other words in the paragraph.  See the thesis for more details.
 
   Empirical results:
     This feature correlates with toy data scores at 0.23.
   """
-  sentences = sent_tokenize(paragraph)
-  if len(sentences) < 2:
+  trees = []
+  for t_string in parse:
+    trees.append(Tree.fromstring(t_string))
+  if len(trees) < 2:
     return Counter()
-  first_sentence = sentences[0]
-  first_sentence_tokens = utils_parsing.get_nouns_verbs([first_sentence])
-  rest_sentences = sentences[1:]
-  rest_sentences_tokens = utils_parsing.get_nouns_verbs(rest_sentences) 
+  first_tree = trees[0]
+  first_sentence_tokens = utils_parsing.get_nouns_verbs([first_tree])
+  rest_trees = trees[1:]
+  rest_sentences_tokens = utils_parsing.get_nouns_verbs(rest_trees) 
 
   similarities = np.zeros((len(first_sentence_tokens), len(rest_sentences_tokens)))
   for i, tuple1 in enumerate(first_sentence_tokens):

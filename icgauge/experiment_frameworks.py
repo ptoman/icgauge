@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python
 
+import numpy as np
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
@@ -55,15 +56,21 @@ def build_dataset(reader, phi_list, class_func, vectorizer=None, verbose=False):
     labels = []
     feat_dicts = []
     raw_examples = []
-    for paragraph, label in reader():
+    for i, (paragraph, parse, label) in enumerate(reader()):
+        if i % 25 == 0:
+            print "   Starting feature extraction for unit #%d " % (i+1)
         cls = class_func(label)
+        #print label, cls
         if cls != None:
             labels.append(cls)
             raw_examples.append(paragraph)
+
+            if verbose:
+                print cls, ":", paragraph
             
             features = Counter()
             for phi in phi_list:
-                cur_feats = phi(paragraph)
+                cur_feats = phi(paragraph, parse)
                 if cur_feats is None:
                     continue
                 # If we won't accidentally blow away data, merge 'em.
@@ -72,6 +79,11 @@ def build_dataset(reader, phi_list, class_func, vectorizer=None, verbose=False):
                     print "Note: Overlap features are ", overlap_feature_names
                 features |= cur_feats
             feat_dicts.append(features)
+
+            if verbose:
+                print features
+                print 
+    print "Completed all feature extraction: %d units" % (i+1)
     
     # In training, we want a new vectorizer, but in 
     # assessment, we featurize using the existing vectorizer:
@@ -152,16 +164,23 @@ def experiment_features(
     
     """        
     # Train dataset:
-    train = build_dataset(train_reader, phi_list, class_func, vectorizer=None) 
-    
+    train = build_dataset(train_reader, phi_list, class_func, vectorizer=None, verbose=verbose) 
+
     # Manage the assessment set-up:
     X_train = train['X']
     y_train = train['y']
     X_assess = None 
     y_assess = None
     if assess_reader == None:
+         print "   Raw y training distribution:"
+         print "  ", np.bincount(y_train)[1:]
          X_train, X_assess, y_train, y_assess = train_test_split(
-                X_train, y_train, train_size=train_size)
+                X_train, y_train, train_size=train_size, stratify=np.unique(y_train))
+         print "   Train y distribution:"
+         print "  ", np.bincount(y_train)[1:]
+         print "   Test y distribution:"
+         print "  ", np.bincount(y_assess)[1:]
+  
     else:
         assess = build_dataset(
             assess_reader, 
@@ -182,7 +201,7 @@ def experiment_features(
         print confusion_matrix(y_assess, predictions, labels=[0,1,2,3,4,5,6])
         print "Correlation: ", pearsonr(y_assess, predictions)[0]
         print "(Rows are truth; columns are predictions)"
-        
+
     # Return the overall score:
     return score_func(y_assess, predictions), confusion_matrix(y_assess, predictions)
     
@@ -202,6 +221,7 @@ def experiment_features_iterated(
     correlation_overall = []
     conf_matrix_overall = None
     while len(correlation_overall) < iterations:
+        print "\nStarting iteration: #%d" % (len(correlation_overall)+1)
         try:
             correlation_local, conf_matrix_local = experiment_features(
                 train_reader=train_reader, 
@@ -211,7 +231,7 @@ def experiment_features_iterated(
                 class_func=class_func,
                 train_func=train_func,
                 score_func=score_func,
-                verbose=False)
+                verbose=verbose)
                 
             correlation_overall.append(correlation_local[0])
             
