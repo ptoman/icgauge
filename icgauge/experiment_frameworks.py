@@ -175,7 +175,7 @@ def experiment_features(
          print "   Raw y training distribution:"
          print "  ", np.bincount(y_train)[1:]
          X_train, X_assess, y_train, y_assess = train_test_split(
-                X_train, y_train, train_size=train_size, stratify=np.unique(y_train))
+                X_train, y_train, train_size=train_size, stratify=y_train)
          print "   Train y distribution:"
          print "  ", np.bincount(y_train)[1:]
          print "   Test y distribution:"
