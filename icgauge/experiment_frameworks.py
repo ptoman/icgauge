@@ -161,21 +161,35 @@ def experiment_features(
 
     np.array
         The confusion matrix (rows are truth, columns are predictions)
+
+    list of dictionaries
+        A list of {truth:_ , prediction:_, example:_} dicts on the assessment data
     
     """        
     # Train dataset:
     train = build_dataset(train_reader, phi_list, class_func, vectorizer=None, verbose=verbose) 
 
     # Manage the assessment set-up:
+    indices = np.arange(0, len(train['y']))
     X_train = train['X']
-    y_train = train['y']
+    y_train = np.array(train['y'])
+    train_examples = np.array(train['raw_examples'])
     X_assess = None 
     y_assess = None
+    assess_examples = None
     if assess_reader == None:
          print "   Raw y training distribution:"
          print "  ", np.bincount(y_train)[1:]
-         X_train, X_assess, y_train, y_assess = train_test_split(
-                X_train, y_train, train_size=train_size, stratify=y_train)
+
+         indices_train, indices_assess, y_train, y_assess = train_test_split(
+                indices, y_train, train_size=train_size, stratify=y_train)
+
+         X_assess = X_train[indices_assess]
+         assess_examples = train_examples[indices_assess]
+
+         X_train = X_train[indices_train]
+         train_examples = train_examples[indices_train]
+
          print "   Train y distribution:"
          print "  ", np.bincount(y_train)[1:]
          print "   Test y distribution:"
@@ -187,24 +201,48 @@ def experiment_features(
             phi_list, 
             class_func, 
             vectorizer=train['vectorizer'])
-        X_assess, y_assess = assess['X'], assess['y']
-        
+        X_assess, y_assess, assess_examples = assess['X'], assess['y'], np.array(assess['raw_examples'])
+
     # Train:      
     mod = train_func(X_train, y_train)    
     
     # Predictions:
-    predictions = mod.predict(X_assess)
+    predictions_on_assess = mod.predict(X_assess)
+    assess_performance = get_score_example_pairs(y_assess, predictions_on_assess, assess_examples)
+
+    predictions_on_train = mod.predict(X_train)
+    train_performance = get_score_example_pairs(y_train, predictions_on_train, train_examples)
     
     # Report:
     if verbose:
-        print classification_report(y_assess, predictions, digits=3)
-        print confusion_matrix(y_assess, predictions, labels=[0,1,2,3,4,5,6])
-        print "Correlation: ", pearsonr(y_assess, predictions)[0]
-        print "(Rows are truth; columns are predictions)"
+        print "\n-- TRAINING RESULTS --"
+        print_verbose_overview(y_train, predictions_on_train)
+        print "\n-- ASSESSMENT RESULTS --"
+        print_verbose_overview(y_assess, predictions_on_assess)
 
-    # Return the overall score:
-    return score_func(y_assess, predictions), confusion_matrix(y_assess, predictions)
+    # Return the overall results on the assessment data:
+    return score_func(y_assess, predictions_on_assess), confusion_matrix(y_assess, predictions_on_assess), assess_performance
     
+
+def get_score_example_pairs(y, y_hat, examples):
+    """ Return a list of dicts: {truth score, predicted score, example} """
+    paired_results = sorted(zip(y, y_hat), key=lambda x: x[0]-x[1])
+    performance = []
+    for i, (truth, prediction) in enumerate(paired_results): 
+        performance.append({"truth": truth, "prediction": prediction, "example": examples[i]})
+    return performance
+
+
+def print_verbose_overview(y, yhat):
+    """ Print a performance overview """
+    print "Correlation: ", pearsonr(y, yhat)[0]
+    print "Classification report:"
+    print classification_report(y, yhat, digits=3)
+    print "Confusion matrix:"
+    print confusion_matrix(y, yhat)
+    print "  (Rows are truth; columns are predictions)"
+
+
 def experiment_features_iterated(
         train_reader=data_readers.toy, 
         assess_reader=None, 
@@ -220,10 +258,11 @@ def experiment_features_iterated(
     """  
     correlation_overall = []
     conf_matrix_overall = None
+    assess_performance = []
     while len(correlation_overall) < iterations:
-        print "\nStarting iteration: #%d" % (len(correlation_overall)+1)
+        print "\nStarting iteration: %d/%d" % (len(correlation_overall)+1, iterations)
         try:
-            correlation_local, conf_matrix_local = experiment_features(
+            correlation_local, conf_matrix_local, perf_local = experiment_features(
                 train_reader=train_reader, 
                 assess_reader=assess_reader, 
                 train_size=train_size,
@@ -234,6 +273,7 @@ def experiment_features_iterated(
                 verbose=verbose)
                 
             correlation_overall.append(correlation_local[0])
+            assess_performance.extend(perf_local)
             
             if conf_matrix_overall is None:
                 conf_matrix_overall = conf_matrix_local
@@ -243,7 +283,8 @@ def experiment_features_iterated(
             print e
     
     if verbose:
+        print "\n-- OVERALL --"
         print correlation_overall
         print conf_matrix_overall
     
-    return correlation_overall, conf_matrix_overall
+    return correlation_overall, conf_matrix_overall, assess_performance
