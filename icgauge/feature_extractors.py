@@ -23,6 +23,92 @@ glove = None
 # Note: Best to use independent namespaces for each key,
 # since multiple feature functions can be grouped together.
 
+# # for spell-checking
+# import re, collections
+
+# def words(text):
+#     return re.findall('[a-z]+', text.lower())
+
+# def train(features):
+#     model = collections.defaultdict(lambda: 1)
+#     for f in features:
+#         model[f] += 1
+#     return model
+
+# NWORDS = train(words(file('big.txt').read()))
+# alphabet = 'abcdefghijklmnopqrstuvwxyz'
+
+# def edits1(word):
+#     s = [(word[:i], word[i:]) for i in range(len(word) + 1)]
+#     deletes    = [a + b[1:] for a, b in s if b]
+#     transposes = [a + b[1] + b[0] + b[2:] for a, b in s if len(b)>1]
+#     replaces   = [a + c + b[1:] for a, b in s for c in alphabet if b]
+#     inserts    = [a + c + b     for a, b in s for c in alphabet]
+#     return set(deletes + transposes + replaces + inserts)
+
+# def known_edits2(word):
+#     return set(e2 for e1 in edits1(word) for e2 in edits1(e1) if e2 in NWORDS)
+
+# def known(words):
+#     return set(w for w in words if w in NWORDS)
+
+# def correct(word):
+#     candidates = known([word]) or known(edits1(word)) or    known_edits2(word) or [word]
+#     return max(candidates, key=NWORDS.get)
+
+def word_length_features(paragraph):
+    """
+    Return a counter containing:
+      avg_word_length
+      median_frequency_word_length
+      num_words_greater_than_6
+
+    Parameters
+    ----------
+    paragraph : string
+        Content string from which features should be extracted.
+
+    Returns
+    -------
+    dict : string -> integer
+    """
+    features = Counter()
+
+    features['avg_word_length'] = get_avg_word_length(paragraph)
+    features['median_frequency'] = get_median_frequency(paragraph)
+    features['num_words_greater_than_6'] = get_num_words_greater_than_x(paragraph, 6)
+
+    return features
+
+def get_avg_word_length(paragraph):
+    """
+    Return the average length of words
+    """
+    total_length = 0
+    tokenized_and_lowercase = word_tokenize(paragraph.lower())
+    for w in tokenized_and_lowercase:
+      total_length += len(w)
+
+    return total_length / len(tokenized_and_lowercase)
+
+def get_median_frequency(paragraph):
+    """
+    Return median length after sorting the words based on their length.
+    """
+    tokenized_and_lowercase = word_tokenize(paragraph.lower())
+    sorted_word_length_list = sorted([len(w) for w in tokenized_and_lowercase])
+    if len(sorted_word_length_list) % 2 == 1:
+      return sorted_word_length_list[len(sorted_word_length_list)/2] 
+    return (sorted_word_length_list[len(sorted_word_length_list)/2 - 1] + sorted_word_length_list[len(sorted_word_length_list)/2])/2
+
+def get_num_words_greater_than_x(paragraph, x):
+    """
+    return the number of words that have more than x characters
+    """
+    tokenized_and_lowercase = word_tokenize(paragraph.lower())
+    filtered_list = [w  for w in tokenized_and_lowercase if len(w) > x]
+    return len(filtered_list)
+
 def manual_content_flags(paragraph):
     """
     Baseline feature extractor, based on manual. Produces a feature function 
