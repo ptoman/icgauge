@@ -98,7 +98,7 @@ def get_median_frequency(paragraph):
     tokenized_and_lowercase = word_tokenize(paragraph.lower())
     sorted_word_length_list = sorted([len(w) for w in tokenized_and_lowercase])
     if len(sorted_word_length_list) % 2 == 1:
-      return sorted_word_length_list[len(sorted_word_length_list)/2] 
+      return sorted_word_length_list[len(sorted_word_length_list)/2]
     return (sorted_word_length_list[len(sorted_word_length_list)/2 - 1] + sorted_word_length_list[len(sorted_word_length_list)/2])/2
 
 def get_num_words_greater_than_x(paragraph, x):
