@@ -73,7 +73,7 @@ class DataTests(unittest.TestCase):
                 with open(os.path.join(dirname,fn)) as json_file:
                     for line in json_file:
                         for c in line:
-                            self.assertTrue(ord(c) < 128, "File contains a non-ASCII character")
+                            self.assertTrue(ord(c) < 128, "File contains a non-ASCII character" + str(ord(c)))
 
 if __name__ == '__main__':
     unittest.main()

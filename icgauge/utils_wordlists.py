@@ -137,6 +137,49 @@ def get_conjunctives():
             'whenever', 'where', 'whereas', 'wherever', 'which', 'whichever', 
             'while', 'whilst', 'who', 'whoever', 'whom', 'whomever', 'whose', 
             'why', 'yet']
+
+def get_transitional():
+    """
+    Returns a list of transitional words and phrases used to connect thoughts.
+    List extracted from GRE study guid, including consequence, contrast, diversion, 
+    emphasis, etc.
+    If gives good performance, can expand the list using more existing phrase base.
+    """
+    addition = ["also", "again", "as well as", "besides", "coupled with", "furthermore", 
+        "in addition", "likewise", "moreover", "similarly"]
+    consequence = ["accordingly", "as a result", "consequently", "for this reason", 
+        "for this purpose", "hence", "otherwise", "so then", "subsequently", "therefore", 
+        "thus", "thereupon", "wherefore"]
+    contrast = ["contrast", "by the same token", "conversely", "instead", "likewise",
+        "on one hand", "on the other hand", "on the contrary", "rather", "similarly", 
+        "yet", "but", "however", "still", "nevertheless", "in contrast"]
+    direction = ["here", "there", "over there", "beyond", "nearly", "opposite", "under", 
+        "above", "to the left", "to the right", "in the distance"]
+    diversion = ["by the way", "incidentally"]
+    emphasis = ["above all", "chiefly", "with attention to", "especially", "particularly", 
+        "singularly"]
+    exception = ["aside from", "barring", "beside", "except", "excepting", "excluding", 
+        "exclusive of", "other than", "outside of", "save"]
+    exemplify = ["chiefly", "especially", "for instance", "in particular", "markedly", "namely", 
+        "particularly", "including", "specifically", "such as"]
+    generalizing = ["as a rule", "as usual", "for the most part", "generally", "generally speaking", 
+        "ordinarily", "usually"]
+    illustration = ["for example", "for instance", "for one thing", "as an illustration", 
+        "illustrated with", "as an example", "in this case"]
+    similarity = ["comparatively", "coupled with", "correspondingly", "identically", "likewise", 
+        "similar", "moreover", "together with"]
+    restatement = ["in essence", "in other words", "namely", "that is", "that is to say", 
+        "in short", "in brief", "to put it differently"]
+    sequence = ["at first", "first of all", "to begin with", "in the first place", "at the same time",
+        "for now", "for the time being", "the next step", "in time", "in turn", "later on",
+        "meanwhile", "next", "then", "soon", "the meantime", "later", "while", "earlier",
+        "simultaneously", "afterward", "in conclusion", "with this in mind"]
+    summarizing = ["after all", "all in all", "all things considered", "briefly", "by and large", 
+        "in any case", "in any event", "in brief", "in conclusion", "on the whole", "in short", 
+        "in summary", "in the final analysis", "in the long run", "on balance", "to sum up", 
+        "to summarize", "finally"]
+    return addition + consequence + contrast + direction + diversion + emphasis + exception + \
+        exemplify + generalizing + illustration + similarity + restatement + sequence + summarizing
             
 def get_punctuation():
     """

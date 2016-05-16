@@ -45,7 +45,7 @@ def read_format(src_filename):
 
 def toy():
     """ Returns a reader for the toy data """
-    return read_format("sample_data/toy.json")
+    return read_format("tests/practice_sets1-10_final_second_full_test.json")
     
 def unscorable():
     """ Returns a reader for the unscoreable data """

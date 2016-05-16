@@ -8,3 +8,6 @@
 *.docx
 *.xlsx
 *~
+/tests/
+*.json
+modify.py
