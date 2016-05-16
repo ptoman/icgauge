@@ -1,18 +1,31 @@
 [
     {
-        "paragraph": "A stitch in time saves nine.",
-		"score": "NA"
-    },
-	{
-        "paragraph": "A penny saved is a penny earned.",
-		"score": "NA"
-    },
-	{
-        "paragraph": "A bachelor is an unmarried man.",
-		"score": "NA"
-    },
-	{
-		"paragraph": "Mr. Reagan and Mr. Gorbachev met for four hours in Reykjavik and engaged in detailed discussion of a number of issues of mutual concern, including reductions in intermediate-range nuclear forces in Europe and Asia, and in reductions in strategic nuclear forces.  They also discussed a number of regional conflicts.",
-		"score": "NA"
-	}
+        "parse": [
+            "(ROOT\n  (S\n    (NP (NP (DT A) (NN stitch)) (PP (IN in) (NP (NN time))))\n    (VP (VBZ saves) (NP (CD nine)))\n    (. .)))"
+        ], 
+        "paragraph": "A stitch in time saves nine.", 
+        "score": "NA"
+    }, 
+    {
+        "parse": [
+            "(ROOT\n  (S\n    (NP (NP (DT A) (NN penny)) (VP (VBN saved)))\n    (VP (VBZ is) (NP (NP (DT a) (NN penny)) (VP (VBN earned))))\n    (. .)))"
+        ], 
+        "paragraph": "A penny saved is a penny earned.", 
+        "score": "NA"
+    }, 
+    {
+        "parse": [
+            "(ROOT\n  (S\n    (NP (DT A) (NN bachelor))\n    (VP (VBZ is) (NP (DT an) (ADJP (JJ unmarried)) (NN man)))\n    (. .)))"
+        ], 
+        "paragraph": "A bachelor is an unmarried man.", 
+        "score": "NA"
+    }, 
+    {
+        "parse": [
+            "(ROOT\n  (S\n    (NP\n      (NP (NNP Mr.) (NNP Reagan))\n      (CC and)\n      (NP (NNP Mr.) (NNP Gorbachev)))\n    (VP\n      (VP\n        (VBN met)\n        (PP\n          (IN for)\n          (NP\n            (NP (CD four) (NNS hours))\n            (PP (IN in) (NP (NNP Reykjavik))))))\n      (CC and)\n      (VP\n        (VBN engaged)\n        (PP\n          (IN in)\n          (NP\n            (NP (VBN detailed) (NN discussion))\n            (PP\n              (IN of)\n              (NP\n                (NP (DT a) (NN number))\n                (PP\n                  (IN of)\n                  (NP\n                    (NP (NNS issues))\n                    (PP (IN of) (NP (JJ mutual) (NN concern)))))))\n            (, ,)\n            (PP\n              (VBG including)\n              (NP\n                (NP (NNS reductions))\n                (PP\n                  (IN in)\n                  (NP\n                    (JJ intermediate-range)\n                    (JJ nuclear)\n                    (NNS forces)))))\n            (PP\n              (PP (IN in) (NP (NNP Europe) (CC and) (NNP Asia)))\n              (, ,)\n              (CC and)\n              (PP\n                (IN in)\n                (NP\n                  (NP (NNS reductions))\n                  (PP\n                    (IN in)\n                    (NP (JJ strategic) (JJ nuclear) (NNS forces))))))))))\n    (. .)))", 
+            "(ROOT\n  (S\n    (NP (PRP They))\n    (ADVP (RB also))\n    (VP\n      (VBD discussed)\n      (NP\n        (NP (DT a) (NN number))\n        (PP (IN of) (NP (JJ regional) (NNS conflicts)))))\n    (. .)))"
+        ], 
+        "paragraph": "Mr. Reagan and Mr. Gorbachev met for four hours in Reykjavik and engaged in detailed discussion of a number of issues of mutual concern, including reductions in intermediate-range nuclear forces in Europe and Asia, and in reductions in strategic nuclear forces.  They also discussed a number of regional conflicts.", 
+        "score": "NA"
+    }
 ]

@@ -3,6 +3,7 @@
 
 from nltk.tree import Tree
 from nltk.parse.stanford import StanfordParser
+from nltk.tokenize import sent_tokenize
 import os
 
 path_to_stanford_nlp = os.environ.get('STANFORD_NLP_HOME')
@@ -13,6 +14,10 @@ if not path_to_stanford_nlp:
 english_parser = StanfordParser(os.path.join(path_to_stanford_nlp,'stanford-parser.jar'),
                    os.path.join(path_to_stanford_nlp, 'stanford-parser-3.4.1-models.jar'))
 
+def get_trees_given_paragraph(paragraph):
+  """ Yields the tree for each sentence """
+  sentences = sent_tokenize(paragraph)
+  return [tree for tree in get_trees(sentences)]
 
 def get_trees(sentences):
   """ Yields the tree for each sentence """
@@ -106,6 +111,17 @@ def check_for_match(t, pos):
     pass
   return None
 
+def get_nouns_verbs(list_of_trees):
+  """ Returns the noun and verb tokens in a sentence as tuples: (word, ['v'|'n']) """
+  ALLOWABLE = ['NN', 'NNS', 'NNP', 'NNPS', 
+               'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
+  sentence_tokens = []
+  for source_tree in list_of_trees:
+    source_poses = source_tree.pos()
+    for source_pos in source_poses:
+      if source_pos[1] in ALLOWABLE:
+        sentence_tokens.append((source_pos[0], source_pos[1][0].lower()))
+  return sentence_tokens
 
 
 
