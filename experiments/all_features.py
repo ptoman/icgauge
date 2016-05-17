@@ -23,6 +23,7 @@ corr, conf_matrix, details = experiment_frameworks.experiment_features_iterated(
     train_size=0.7,
     phi_list=[icgauge.feature_extractors.manual_content_flags,
               icgauge.feature_extractors.length,
+              icgauge.feature_extractors.word_length_features,
               icgauge.feature_extractors.modal_presence,
               icgauge.feature_extractors.hedge_presence,
               icgauge.feature_extractors.conjunctives_presence,

@@ -28,7 +28,7 @@ experiment_frameworks.experiment_features(
     assess_reader=None, 
     train_size=0.7,
     phi_list=[icgauge.feature_extractors.manual_content_flags,
-              icgauge.feature_extractors.pujun], 
+              icgauge.feature_extractors.word_length_features], 
     class_func=icgauge.label_transformers.identity_class_func,
     train_func=icgauge.training_functions.fit_maxent_with_crossvalidation,
     score_func=icgauge.utils.safe_weighted_f1,
