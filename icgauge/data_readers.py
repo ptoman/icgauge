@@ -60,12 +60,12 @@ def unscorable():
 
 def train():
     """ Returns a reader for the combinend train data """
-    return read_format("sample_data/train.json")
+    return read_format("data/train.json")
 
 def test():
     """ Returns a reader for the combined test data """
-    return read_format("sample_data/test.json")
+    return read_format("data/test.json")
 
 def dev():
     """ Returns a reader for the combined dev data """
-    return read_format("sample_data/dev.json")
+    return read_format("data/dev.json")
