@@ -1,0 +1,12 @@
+/data
+/venv
+/dist/
+/*.egg-info
+*.pyc
+*.tar
+*.pdf
+*.docx
+*.xlsx
+*~
+*.json
+sample_data/modify.py
