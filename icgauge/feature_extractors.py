@@ -207,13 +207,20 @@ def modal_presence(paragraph, unused_parse):
     
     return modals
     
+def transitional_presence(paragraph, unused_parse):
+    transitional = wordlist_presence(utils_wordlists.get_transitional, paragraph)
+    transitional["transitional_count_token"] = np.sum( \
+        [value for key, value in transitional.items()])    
+    transitional["transitional_count_type"] = len(transitional) - 1 # -1 bc *_count_token
+    return transitional
+    
 def hedge_presence(paragraph, unused_parse):
     hedges = wordlist_presence(utils_wordlists.get_hedges, paragraph)
     hedges["hedge_count_token"] = np.sum( \
         [value for key, value in hedges.items()])    
     hedges["hedge_count_type"] = len(hedges) - 1 # -1 bc *_count_token
     return hedges
-    
+
 def conjunctives_presence(paragraph, unused_parse):
     conjunctives = wordlist_presence(utils_wordlists.get_conjunctives, paragraph)
     conjunctives["conjunctive_count_token"] = np.sum( \
