@@ -7,6 +7,7 @@
 import json
 import codecs
 import numpy as np
+import math
 
 def read_format(src_filename):
     """Iterator for cognitive complexity data.  The iterator 
@@ -32,20 +33,26 @@ def read_format(src_filename):
             `None` indicates paragraphs without a human assessment
     
     """
+    print src_filename
     for item in json.load(codecs.open(src_filename, 'r', 'utf8')):
         paragraph = item["paragraph"]
-        parse = item["parse"] or None
+        parse = None
+        if "parse" in item.keys():
+            parse = item["parse"]
+        # parse = item["parse"] or None
         score = None
         if "score" in item:
             score = item["score"]
             if score == "NA":
                 score = np.nan
+            elif isinstance(score, float):
+                score = int(math.floor(score + 0.5))
             assert score in [1,2,3,4,5,6,7,np.nan]
         yield (paragraph, parse, score)
 
 def toy():
     """ Returns a reader for the toy data """
-    return read_format("sample_data/toy.json")
+    return read_format("tests/toy.json")
     
 def unscorable():
     """ Returns a reader for the unscoreable data """

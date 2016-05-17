@@ -8,3 +8,5 @@
 *.docx
 *.xlsx
 *~
+*.json
+sample_data/modify.py
