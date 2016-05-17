@@ -60,7 +60,7 @@ glove = None
 #     candidates = known([word]) or known(edits1(word)) or    known_edits2(word) or [word]
 #     return max(candidates, key=NWORDS.get)
 
-def word_length_features(paragraph):
+def word_length_features(paragraph, unused_parse):
     """
     Return a counter containing:
       avg_word_length
