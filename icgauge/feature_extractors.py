@@ -415,10 +415,6 @@ def kannan_ambili(paragraph, parse):
   return Counter({"kannan_ambili": paragraph_semsim})
 
 
-# TODO:
-# we need to get parses and keep them stored in parallel to the data --
-# recreating the parses each time is killing the runtime
-
 # Other potentially useful:
 # - syntactic: passive voice
 # - discourse: argument structure (statement-assessment as derived from but/and/because), 
