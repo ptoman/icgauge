@@ -60,6 +60,37 @@ glove = None
 #     candidates = known([word]) or known(edits1(word)) or    known_edits2(word) or [word]
 #     return max(candidates, key=NWORDS.get)
 
+def get_more_most_counts(paragraph, unused_parse):
+  """
+  Return a counter containing:
+   number of times 'more' occurs
+   number of times 'most' occurs
+
+  Parameters
+  ----------
+  paragraph : string
+      Content string from which features should be extracted.
+
+  Returns
+  -------
+  dict : string -> integer    
+  """
+  features = Counter()
+  tokenized_and_lowercase = word_tokenize(paragraph.lower())
+  more_count = 0
+  most_count = 0
+  for w in tokenized_and_lowercase:  
+    if w == "more":
+      more_count += 1
+    elif w == "most":
+      most_count += 1
+
+  features['more_count'] = more_count
+  features['most_count'] = most_count
+
+  return features
+
+
 def word_length_features(paragraph, unused_parse):
     """
     Return a counter containing:
