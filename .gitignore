@@ -10,3 +10,6 @@
 *~
 *.json
 sample_data/modify.py
+/tests/
+*.json
+modify.py

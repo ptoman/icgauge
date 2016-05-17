@@ -1,13 +1,13 @@
 #!/usr/bin/python
 ##
-## Usage: python -m unittest tests.data_tests
+## Usage: python data_tests.py 
 ##
 
 import unittest
 import os
 import json
 
-class DataTests(unittest.TestCase):
+class DataTest(unittest.TestCase):
     """
     Abuse of testing framework to verify that all
     data are in the expected format.
@@ -24,22 +24,22 @@ class DataTests(unittest.TestCase):
     def testFormatOfSampleData(self):
         """ Test the format against files in sample_data """
         print "DataTest:testFormatOfSampleData"
-        self.helper_testFormat("sample_data")
+        self.helper_testFormat("../sample_data")
         
     def testFormatOfData(self):
         """ Test the format against files in sample_data """
         print "DataTest:testFormatOfData"
-        self.helper_testFormat("data")
+        self.helper_testFormat("../data")
 
     def testFormatOfSampleData(self):
         """ Test the format against files in sample_data """
         print "DataTest:testFormatOfSampleData"
-        self.helper_testAscii("sample_data")
+        self.helper_testAscii("../sample_data")
         
     def testFormatOfData(self):
         """ Test the format against files in sample_data """
         print "DataTest:testFormatOfData"
-        self.helper_testAscii("data")
+        self.helper_testAscii("../data")
                 
     def helper_testFormat(self, dirname):
         """ 
@@ -73,7 +73,7 @@ class DataTests(unittest.TestCase):
                 with open(os.path.join(dirname,fn)) as json_file:
                     for line in json_file:
                         for c in line:
-                            self.assertTrue(ord(c) < 128, "File contains a non-ASCII character" + str(ord(c)))
+                            self.assertTrue(ord(c) < 128, "File contains a non-ASCII character")
 
 if __name__ == '__main__':
     unittest.main()
