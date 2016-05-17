@@ -45,10 +45,9 @@ def fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
     # Find the best model within param_grid:
     crossvalidator = GridSearchCV(basemod, param_grid, cv=cv, scoring=scoring)
     crossvalidator.fit(X, y)
-    if verbose:
-        # Report some information:
-        print("Best params", crossvalidator.best_params_)
-        print("Best score: %0.03f" % crossvalidator.best_score_)
+    # Report some information:
+    print("Best params", crossvalidator.best_params_)
+    print("Best score: %0.03f" % crossvalidator.best_score_)
     # Return the best model found:
     return crossvalidator.best_estimator_
     
