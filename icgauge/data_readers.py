@@ -57,3 +57,15 @@ def toy():
 def unscorable():
     """ Returns a reader for the unscoreable data """
     return read_format("sample_data/unscorable.json")
+
+def train():
+    """ Returns a reader for the combinend train data """
+    return read_format("sample_data/train.json")
+
+def test():
+    """ Returns a reader for the combined test data """
+    return read_format("sample_data/test.json")
+
+def dev():
+    """ Returns a reader for the combined dev data """
+    return read_format("sample_data/dev.json")
