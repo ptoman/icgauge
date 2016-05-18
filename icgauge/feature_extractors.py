@@ -90,6 +90,36 @@ def get_more_most_counts(paragraph, unused_parse):
 
   return features
 
+def get_morphological_counts(paragraph, unused_parse):
+  """
+  Return a counter containing:
+   number of times '-----er' occurs
+   number of times '-----est' occurs
+
+  Parameters
+  ----------
+  paragraph : string
+      Content string from which features should be extracted.
+
+  Returns
+  -------
+  dict : string -> integer    
+  """
+  features = Counter()
+  tokenized_and_lowercase = word_tokenize(paragraph.lower())
+  er_count = 0
+  est_count = 0
+  for w in tokenized_and_lowercase:  
+    if w.endswith('er'):
+      er_count += 1
+    elif w.endswith("est"):
+      est_count += 1
+
+  features['er_count'] = er_count
+  features['est_count'] = est_count
+
+  return features
+
 
 def word_length_features(paragraph, unused_parse):
     """

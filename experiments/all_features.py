@@ -27,6 +27,7 @@ corr, conf_matrix, details = experiment_frameworks.experiment_features_iterated(
               icgauge.feature_extractors.modal_presence,
               icgauge.feature_extractors.get_more_most_counts,
               icgauge.feature_extractors.hedge_presence,
+              icgauge.feature_extractors.get_morphological_counts,
               icgauge.feature_extractors.transitional_presence,
               icgauge.feature_extractors.conjunctives_presence,
               icgauge.feature_extractors.punctuation_presence,
