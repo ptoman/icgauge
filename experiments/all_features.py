@@ -38,7 +38,7 @@ corr, conf_matrix, details = experiment_frameworks.experiment_features_iterated(
               icgauge.feature_extractors.kannan_ambili
              ], 
     class_func=icgauge.label_transformers.identity_class_func, #vs. ternary_class_func
-    train_func=icgauge.training_functions.fit_logistic_at_with_crossvalidation,  # does not have crossvalidation
+    train_func=icgauge.training_functions.fit_maxent_with_crossvalidation,  # does not have crossvalidation
     score_func=scipy.stats.stats.pearsonr,
     verbose=False,
     iterations=1)
