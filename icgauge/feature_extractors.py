@@ -166,6 +166,22 @@ def get_median_frequency(paragraph):
       return sorted_word_length_list[len(sorted_word_length_list)/2]
     return (sorted_word_length_list[len(sorted_word_length_list)/2 - 1] + sorted_word_length_list[len(sorted_word_length_list)/2])/2
 
+def word_intensity(paragraph):
+    """
+    Return level of word intensity in the paragraph based on semantic orientation.
+    Code adapted from word similarity class
+
+    Parameters
+    ----------
+    paragraph : string
+        Content string from which features should be extracted.
+
+    Returns
+    -------
+    dict : string -> float
+    """
+    return 0
+
 def get_num_words_greater_than_x(paragraph, x):
     """
     return the number of words that have more than x characters
