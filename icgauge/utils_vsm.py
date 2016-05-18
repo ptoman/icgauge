@@ -6,9 +6,6 @@
 __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2016 term"
 
-vsmdata_home = "../cs224u/vsmdata"
-glove_home = "../cs224u/glove.6B"
-
 import os
 import sys
 import csv
@@ -23,13 +20,9 @@ from numpy.linalg import svd
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-import utils_helper as utils
-
-ww = utils.build(os.path.join(vsmdata_home, 'imdb-wordword.csv'))
-wd = utils.build(os.path.join(vsmdata_home, 'imdb-worddoc.csv'))
-
-glv = utils.build_glove(os.path.join(glove_home, 'glove.6B.50d.txt'))
-
+import pickle
+from sklearn.metrics import classification_report
+import utils
 
 def euclidean(u, v):    
     """Eculidean distance between 1d np.arrays `u` and `v`, which must 
@@ -108,9 +101,6 @@ def neighbors(word, mat, rownames, distfunc=cosine):
     w = mat[rownames.index(word)]
     dists = [(rownames[i], distfunc(w, mat[i])) for i in range(len(mat))]
     return sorted(dists, key=itemgetter(1), reverse=False)
-
-
-# neighbors(word='superb', mat=glv[0], rownames=glv[1], distfunc=cosine)[: 5]
 
 def prob_norm(u):
     """Normalize 1d np.array `u` into a probability distribution. Assumes 
@@ -223,74 +213,6 @@ def lsa(mat=None, rownames=None, k=100):
     return (trunc, rownames)
 
 
-def tsne_viz(
-        mat,
-        rownames,
-        colors=None,
-        output_filename=None,
-        figheight=40,
-        figwidth=50):     
-    """2d plot of `mat` using t-SNE, with the points labeled by `rownames`, 
-    aligned with `colors` (defaults to all black).
-    
-    Parameters
-    ----------    
-    mat : 2d np.array
-        The matrix to visualize.
-        
-    rownames : list of str
-        Names of the points to visualize.
-                
-    colors : list of colornames or None (default: None)
-        Optional list of colors for rownames. The color names just need to 
-        be interpretable by matplotlib. If they are supplied, they need to 
-        have the same length as rownames, or indices if that is not None. 
-        If `colors=None`, then all the words are displayed in black.
-      
-    output_filename : str (default: None)
-        If not None, then the output image is written to this location. The 
-        filename suffix determines the image type. If None, then 
-        `plt.plot()` is called, with the behavior determined by the 
-        environment.
-        
-    figheight : int (default: 40)
-        Height in display units of the output.
-            
-    figwidth : int (default: 50)
-        Width in display units of the output.
-        
-    """
-    indices = list(range(len(rownames)))
-    # Colors:
-    if not colors:
-        colors = ['black' for i in indices]    
-    # Recommended reduction via PCA or similar:
-    n_components = 50 if mat.shape[1] >= 50 else mat.shape[1]
-    dimreduce = PCA(n_components=n_components)
-    mat = dimreduce.fit_transform(mat)
-    # t-SNE:
-    tsne = TSNE(n_components=2, random_state=0)
-    np.set_printoptions(suppress=True)    
-    tsnemat = tsne.fit_transform(mat) 
-    # Plot values:
-    vocab = np.array(rownames)[indices]
-    xvals = tsnemat[indices, 0] 
-    yvals = tsnemat[indices, 1]
-    # Plotting:
-    fig, ax = plt.subplots(nrows=1, ncols=1)
-    fig.set_figheight(40)
-    fig.set_figwidth(50)
-    ax.plot(xvals, yvals, marker='', linestyle='')
-    # Text labels:
-    for word, x, y, color in zip(vocab, xvals, yvals, colors):
-        ax.annotate(word, (x, y), fontsize=8, color=color)
-    # Output:
-    if output_filename:
-        plt.savefig(output_filename, bbox_inches='tight')
-    else:
-        plt.show()
-
-
 def glove(mat, rownames, n=100, xmax=100, alpha=0.75, 
           iterations=100, learning_rate=0.05, 
           display_progress=True):
@@ -366,49 +288,6 @@ def glove(mat, rownames, n=100, xmax=100, alpha=0.75,
     # Return the sum of the word and context matrices, per the advice 
     # in section 4.2:
     return (W + C, rownames)
-
-
-
-def glove_analysis(n=2, iterations=3000):
-    """Run GloVe and plot the dot products of the resulting vectors relative
-    to the input co-occurrence counts. `n` and `iterations` are parameters to
-    `glove`. Higher `iterations` and`n` come closer to the ideal."""
-    vocab = ['A', 'B', 'C', 'D']
-    mat = np.array([
-        [10.0,  2.0,  3.0,  4.0],
-        [ 2.0, 10.0,  4.0,  1.0],
-        [ 3.0,  4.0, 10.0,  2.0],
-        [ 4.0,  1.0,  2.0, 10.0]])
-    glv, _ = glove(mat, vocab, n=n, iterations=iterations)
-    labels = []
-    cooccurs = []
-    vals = []
-    m = len(vocab)
-    for i in range(m):        
-        for j in range(i, m):
-            labels.append(vocab[i]+vocab[j])
-            cooccurs.append(mat[i,j])
-            vals.append(glv[i].dot(glv[j]))            
-    plt.plot(cooccurs, vals, marker='', linestyle='')
-    for c, v, lab in zip(cooccurs, vals, labels):
-        plt.annotate(lab, (c, v))    
-    plt.xlabel("Co-occurence count")
-    plt.ylabel("Dot product of GloVe vectors")
-    plt.xlim([np.min(cooccurs)*1.2,np.max(cooccurs)*1.2])
-    plt.ylim([np.min(vals)*1.2,np.max(vals)*1.2])
-    
-# glove_analysis()    
-
-
-
-def glove_viz(mat, rownames, word_count=1000, 
-        iterations=10, n=50, display_progress=True):    
-    """Visualize a random sample of `word_count` words in `mat` 
-    after GloVe training."""   
-    glove_indices = np.random.choice(range(len(rownames)), size=word_count)
-    samp = np.array(rownames)[glove_indices]
-    glovemat, _ = glove(mat[glove_indices, :], samp, iterations=iterations, n=n)
-    tsne_viz(mat=glovemat, rownames=samp)
 
 
 def semantic_orientation(
@@ -586,95 +465,6 @@ def full_word_similarity_evaluation(mat, rownames):
         print(reader.__name__)
         print('Spearman r: %0.03f' % word_similarity_evaluation(reader, mat, rownames))
 
-
-# ## Word analogies evaluation
-
-# Word analogies provide another kind of evaluation for distributed representations. Here, we are given three vectors A, B, and C, in the relationship
-# 
-# _A is to B as C is to __ _
-# 
-# and asked to identify the fourth that completes the analogy. This section conducts such analyses using a large, automatically collected analogies datset from Google. These analogies are by and large substantially easier than the classic brain-teaser analogies that used to appear on tests like the SAT, but it's still an interesting, demanding
-# task. 
-# 
-# The core idea idea is that we make predictions by creating the vector
-# 
-# $$(B - A) + C$$ 
-# 
-# and then ranking all vectors based on their distance from this new vector, choosing the closest as our prediction.
-
-# In[30]:
-
-def analogy_completion(a, b, c, mat, rownames, distfunc=cosine):
-    """a is to be as c is to predicted, where predicted is the 
-    closest to (b-a) + c"""
-    for x in (a, b, c):
-        if x not in rownames:
-            raise ValueError('%s is not in this VSM' % x)
-    avec = mat[rownames.index(a)]
-    bvec = mat[rownames.index(b)]
-    cvec = mat[rownames.index(c)]
-    newvec = (bvec - avec) + cvec
-    dists = [(w, distfunc(newvec, mat[i])) for i, w in enumerate(rownames) if w not in (a, b, c)]
-    return sorted(dists, key=itemgetter(1), reverse=False)    
-
-
-# In[74]:
-
-# analogy_completion('dance', 'dancing', 'sing', 
-#     mat=ww_ppmi[0], rownames=ww_ppmi[1])[:5]
-
-
-# In[38]:
-
-def analogy_evaluation(
-        mat, 
-        rownames, 
-        src_filename='gram1-adjective-to-adverb.txt', 
-        distfunc=cosine):
-    """Basic analogies evaluation for a file `src_filename `
-    in `question-data/`.
-    
-    Parameters
-    ----------    
-    mat : 2d np.array
-        The VSM being evaluated.
-        
-    rownames : list of str
-        The names of the rows in `mat`.
-        
-    src_filename : str
-        Basename of the file to be evaluated. It's assumed to be in
-        `vsmdata_home`/question-data.
-        
-    distfunc : function mapping vector pairs to floats (default: `cosine`)
-        The measure of distance between vectors. Can also be `euclidean`, 
-        `matching`, `jaccard`, as well as any other distance measure 
-        between 1d vectors.
-    
-    Returns
-    -------
-    (float, float)
-        The first is the mean reciprocal rank of the predictions and 
-        the second is the accuracy of the predictions.
-    
-    """
-    src_filename = os.path.join(vsmdata_home, 'question-data', src_filename)
-    # Read in the data and restrict to problems we can solve:
-    data = [line.split() for line in open(src_filename).read().splitlines()]
-    data = [prob for prob in data if set(prob) <= set(rownames)]
-    # Run the evaluation, collecting accuracy and rankings:
-    results = defaultdict(int)
-    ranks = []
-    for a, b, c, d in data:
-        predicted = analogy_completion(a, b, c, mat=mat, rownames=rownames, distfunc=distfunc)
-        # print "%s is to %s as %s is to %s (actual is %s)" % (a, b, c, predicted, d)
-        results[predicted[0][0] == d] += 1
-        predicted_words, _ = zip(*predicted)
-        ranks.append(predicted_words.index(d))
-    # Return the mean reciprocal rank and the accuracy results:
-    mrr = np.mean(1.0/(np.array(ranks)+1))
-    return (mrr, results)
-
 def KL(a, b):
     a = np.asarray(a, dtype=np.float)
     b = np.asarray(b, dtype=np.float)
@@ -731,10 +521,6 @@ def ttest(mat, rownames=None):
     intersection = rowprobs * colprobs
     p = np.multiply((p - intersection), 1./np.sqrt(intersection))
     return (p, rownames)
-
-
-import pickle
-from sklearn.metrics import classification_report
 
 def semantic_orientation_lexicon(mat, rownames, posset, negset, distfunc=cosine):
     """Induce a pos/neg lexicon using `semantic_orientation`.

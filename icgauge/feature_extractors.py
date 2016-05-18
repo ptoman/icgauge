@@ -15,6 +15,8 @@ import utils
 import utils_wordlists
 import utils_parsing
 import utils_similarity
+import pickle
+from utils_vsm import semantic_orientation_score_lexicon
 
 
 GLOVE_SIZE = 50 # 50 is appropriate -- bigger starts to seriously 
@@ -23,6 +25,9 @@ path_to_glove = os.environ.get('GLV_HOME')
 if not path_to_glove:
   raise ImportError("GLV_HOME not defined as environmental variable")
 glove = None
+semantic_lexicon = None
+if os.path.exists(os.path.join('data/', 'semantic_lexicon.pickle')):
+  semantic_lexicon = pickle.load(file(os.path.join('data/', 'semantic_lexicon.pickle')))
 
 # Note: Best to use independent namespaces for each key,
 # since multiple feature functions can be grouped together.
@@ -88,7 +93,7 @@ def get_more_most_counts(paragraph, unused_parse):
   features['more_count'] = more_count
   features['most_count'] = most_count
 
-  return features
+  return Counter(features)
 
 def get_morphological_counts(paragraph, unused_parse):
   """
@@ -166,7 +171,7 @@ def get_median_frequency(paragraph):
       return sorted_word_length_list[len(sorted_word_length_list)/2]
     return (sorted_word_length_list[len(sorted_word_length_list)/2 - 1] + sorted_word_length_list[len(sorted_word_length_list)/2])/2
 
-def word_intensity(paragraph):
+def word_intensity(paragraph, unused_parse):
     """
     Return level of word intensity in the paragraph based on semantic orientation.
     Code adapted from word similarity class
@@ -180,7 +185,36 @@ def word_intensity(paragraph):
     -------
     dict : string -> float
     """
-    return 0
+    global glove
+    if glove == None:
+      glove = utils.glove2dict(os.path.join(path_to_glove, 
+              'glove.6B.%dd.txt' % GLOVE_SIZE))
+    global semantic_lexicon
+    if semantic_lexicon == None:
+      glv = utils.build_glove(os.path.join(path_to_glove, 
+              'glove.6B.%dd.txt' % GLOVE_SIZE))
+      semantic_lexicon = semantic_orientation_score_lexicon(mat=glv[0], rownames=glv[1],
+        negset=('little', 'few', 'never', 'low', 'negative', 'wrong', 'small', 'inferior', 'seldom'),
+        posset=('extremely', 'many', 'always', 'high', 'positive', 'correct', 'big', 'superior', 'often'))
+      pickle.dump(semantic_lexicon, open( "data/semantic_lexicon.pickle", "w+" ) )
+    intensity = []
+    sentence = []
+    sentence_means = []
+    tokenized_and_lowercase = word_tokenize(paragraph.lower())
+    for word in tokenized_and_lowercase:
+        if word in semantic_lexicon:
+            intensity.append(semantic_lexicon[word])
+            sentence.append(semantic_lexicon[word])
+        if word == ".":
+            m = np.mean(sentence)
+            sentence_means.append(m)
+            sentence = []
+    sentence_var = 0
+    if len(sentence_means) > 1:
+        sentence_var = np.var(sentence_means)
+    # print {'all_var': np.var(intensity), 'sentence_var': sentence_var}
+    return Counter({'all_var': np.var(intensity), 'sentence_var': sentence_var})
+
 
 def get_num_words_greater_than_x(paragraph, x):
     """
@@ -459,7 +493,7 @@ def syntactic_parse_features(paragraph, parse):
   features["tree_height_max"] = np.max(tree_heights)
   features["tree_height_min"] = np.min(tree_heights)
   features["tree_height_spread"] = np.max(tree_heights) - np.min(tree_heights)
-  return features
+  return Counter(features)
 
 def kannan_ambili(paragraph, parse):
   """ Semantic coherence as in Kannan-Ambili MS thesis at
@@ -497,7 +531,6 @@ def kannan_ambili(paragraph, parse):
   paragraph_semsim = np.exp(-np.sum(similarities.mean(axis=1)))
 
   return Counter({"kannan_ambili": paragraph_semsim})
-
 
 # Other potentially useful:
 # - syntactic: passive voice
