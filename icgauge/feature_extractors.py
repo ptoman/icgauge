@@ -84,14 +84,30 @@ def get_more_most_counts(paragraph, unused_parse):
   tokenized_and_lowercase = word_tokenize(paragraph.lower())
   more_count = 0
   most_count = 0
+  less_count = 0
+  fewer_count = 0
+  least_count = 0
+  fewest_count = 0
   for w in tokenized_and_lowercase:  
     if w == "more":
       more_count += 1
     elif w == "most":
       most_count += 1
+    elif w == "less":
+      less_count += 1
+    elif w == "fewer":
+      fewer_count += 1
+    elif w == "least":
+      least_count += 1
+    elif w == "fewest":
+      fewest_count += 1
 
   features['more_count'] = more_count
   features['most_count'] = most_count
+  features['less_count'] = less_count
+  features['fewer_count'] = fewer_count
+  features['least_count'] = least_count
+  features['fewest_count'] = fewest_count
 
   return Counter(features)
 
@@ -109,7 +125,7 @@ def get_morphological_counts(paragraph, unused_parse):
 
   Returns
   -------
-  dict : string -> integer    
+  dict : string -> integer
   """
   features = Counter()
   tokenized_and_lowercase = word_tokenize(paragraph.lower())
