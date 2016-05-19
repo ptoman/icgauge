@@ -99,6 +99,7 @@ def get_morphological_counts(paragraph, unused_parse):
   """
   Return a counter containing:
    number of times '-----er' occurs
+   number of times '-----ly' occurs
    number of times '-----est' occurs
 
   Parameters
@@ -113,15 +114,19 @@ def get_morphological_counts(paragraph, unused_parse):
   features = Counter()
   tokenized_and_lowercase = word_tokenize(paragraph.lower())
   er_count = 0
+  ly_count = 0
   est_count = 0
   for w in tokenized_and_lowercase:  
     if w.endswith('er'):
       er_count += 1
     elif w.endswith("est"):
       est_count += 1
+    elif w.endswith("ly"):
+      ly_count += 1
 
   features['er_count'] = er_count
   features['est_count'] = est_count
+  features['ly_count'] = ly_count
 
   return features
 
@@ -185,6 +190,7 @@ def word_intensity(paragraph, unused_parse):
     -------
     dict : string -> float
     """
+    AVG_SENTENCE_LENGTH = 15
     global glove
     if glove == None:
       glove = utils.glove2dict(os.path.join(path_to_glove, 
@@ -205,15 +211,18 @@ def word_intensity(paragraph, unused_parse):
         if word in semantic_lexicon:
             intensity.append(semantic_lexicon[word])
             sentence.append(semantic_lexicon[word])
-        if word == ".":
+        # if word == ".":
+        if len(sentence) >= AVG_SENTENCE_LENGTH:
             m = np.mean(sentence)
             sentence_means.append(m)
             sentence = []
+    m = np.mean(sentence)
+    sentence_means.append(m)
     sentence_var = 0
     if len(sentence_means) > 1:
         sentence_var = np.var(sentence_means)
     # print {'all_var': np.var(intensity), 'sentence_var': sentence_var}
-    return Counter({'all_var': np.var(intensity), 'sentence_var': sentence_var})
+    return Counter({'all_var': np.var(intensity)})
 
 
 def get_num_words_greater_than_x(paragraph, x):
