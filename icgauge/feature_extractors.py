@@ -238,7 +238,7 @@ def word_intensity(paragraph, unused_parse):
     if len(sentence_means) > 1:
         sentence_var = np.var(sentence_means)
     # print {'all_var': np.var(intensity), 'sentence_var': sentence_var}
-    return Counter({'all_var': np.var(intensity)})
+    return Counter({'all_var': np.var(intensity), 'sentence_var': sentence_var})
 
 
 def get_num_words_greater_than_x(paragraph, x):
