@@ -36,8 +36,11 @@ if run_experiment:
       assess_reader=None, #icgauge.data_readers.test_official, 
       train_size=0.7,
       phi_list=[
+        # These two features were used to control for the effect of number
+        # of words and to get at the effect of the decomposition itself
         #        icgauge.feature_extractors.number_words_only,
         #        icgauge.feature_extractors.dimensional_decomposition,
+        # The real feature function for PCA, though, is:
                  icgauge.feature_extractors.semcom_pca_features
                ], 
       class_func=icgauge.label_transformers.identity_class_func, #ternary_class_func
