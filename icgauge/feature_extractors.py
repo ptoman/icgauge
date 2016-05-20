@@ -79,11 +79,12 @@ def all_features(paragraph, parse):
 ##########################################
 def lexical_features(paragraph, parse):
   return get_morphological_counts(paragraph, parse) | \
-    modal_presence(paragraph, unused_parse) | \
-    transitional_presence(paragraph, unused_parse) | \
-    hedge_presence(paragraph, unused_parse) | \
-    conjunctives_presence(paragraph, unused_parse) | \
-    punctuation_presence(paragraph, unused_parse)
+    modal_presence(paragraph, parse) | \
+    relative_amount_presence(paragraph, parse) | \
+    transitional_presence(paragraph, parse) | \
+    hedge_presence(paragraph, parse) | \
+    conjunctives_presence(paragraph, parse) | \
+    punctuation_presence(paragraph, parse)
 
 def syntactic_features(paragraph, parse):
   return determiner_usage(paragraph, parse) | \
@@ -98,6 +99,7 @@ def get_morphological_counts(paragraph, unused_parse):
   """
   Return a counter containing:
    number of times '-----er' occurs
+   number of times '-----ly' occurs
    number of times '-----est' occurs
 
   Parameters
@@ -107,20 +109,24 @@ def get_morphological_counts(paragraph, unused_parse):
 
   Returns
   -------
-  dict : string -> integer    
+  dict : string -> integer
   """
   features = Counter()
   tokenized_and_lowercase = word_tokenize(paragraph.lower())
   er_count = 0
+  ly_count = 0
   est_count = 0
   for w in tokenized_and_lowercase:  
     if w.endswith('er'):
       er_count += 1
     elif w.endswith("est"):
       est_count += 1
+    elif w.endswith("ly"):
+      ly_count += 1
 
   features['er_count'] = er_count
   features['est_count'] = est_count
+  features['ly_count'] = ly_count
 
   return features
 
@@ -139,6 +145,8 @@ def word_intensity(paragraph, unused_parse):
     -------
     dict : string -> float
     """
+    AVG_SENTENCE_LENGTH = 15
+
     global semantic_lexicon
     if semantic_lexicon == None:
       glv = utils.build_glove(os.path.join(path_to_glove, 
@@ -156,10 +164,13 @@ def word_intensity(paragraph, unused_parse):
         if word in semantic_lexicon:
             intensity.append(semantic_lexicon[word])
             sentence.append(semantic_lexicon[word])
-        if word in [".", "?", "!"]:
+        # if word  in [".", "?", "!"]:
+        if len(sentence) >= AVG_SENTENCE_LENGTH:
             m = np.mean(sentence)
             sentence_means.append(m)
             sentence = []
+    m = np.mean(sentence)
+    sentence_means.append(m)
     sentence_var = 0
     if len(sentence_means) > 1:
         sentence_var = np.var(sentence_means)
@@ -493,6 +504,14 @@ def modal_presence(paragraph, unused_parse):
     
     return modals
     
+def relative_amount_presence(paragraph, unused_parse):
+    """ Calculates the presence of relative amount phrases """
+    relamt = wordlist_presence(utils_wordlists.get_relative_amount, paragraph)
+    relamt["relative_amount_count_token"] = np.sum( \
+        [value for key, value in relamt.items()])    
+    relamt["relative_amount_count_type"] = len(relamt) - 1 # -1 bc *_count_token
+    return relamt
+
 def transitional_presence(paragraph, unused_parse):
     """ Calculates the presence of transitional phrases """
     transitional = wordlist_presence(utils_wordlists.get_transitional, paragraph)

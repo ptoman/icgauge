@@ -48,6 +48,12 @@ def get_modals():
     return ["can", "could", "may", "might", "must", "shall", "should", 
             "will", "would", "ought", "had better", "dare", "need"]
 
+def get_relative_amount():
+    """
+    Returns a list of words indicating relative amount in English.
+    """
+    return ["more", "most", "less", "lesser", "fewer", "least", "fewest"]
+
 def get_hedges():
     """
     Returns a list of hedge phrases in English, all lowercase. Tries to capture all 
