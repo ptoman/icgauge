@@ -56,6 +56,7 @@ def build_dataset(reader, phi_list, class_func, vectorizer=None, verbose=False):
     labels = []
     feat_dicts = []
     raw_examples = []
+    rows = []
     for i, (paragraph, parse, label) in enumerate(reader()):
         if i % 25 == 0:
             print "   Starting feature extraction for unit #%d " % (i+1)
@@ -78,13 +79,13 @@ def build_dataset(reader, phi_list, class_func, vectorizer=None, verbose=False):
                 if verbose and len(overlap_feature_names) > 0:
                     print "Note: Overlap features are ", overlap_feature_names
                 features |= cur_feats
+                rows.append(cur_feats['row'])
             feat_dicts.append(features)
 
             if verbose:
                 print features
                 print 
     print "Completed all feature extraction: %d units" % (i+1)
-    
     # In training, we want a new vectorizer, but in 
     # assessment, we featurize using the existing vectorizer:
     feat_matrix = None    
@@ -157,7 +158,10 @@ def experiment_features(
     Returns
     -------
     float
-        The overall scoring metric as determined by `score_metric`.
+        The overall scoring metric for assess set as determined by `score_metric`.
+
+    float
+        The overall Cronbach's alpha for assess set
 
     np.array
         The confusion matrix (rows are truth, columns are predictions)
@@ -221,7 +225,10 @@ def experiment_features(
         print_verbose_overview(y_assess, predictions_on_assess)
 
     # Return the overall results on the assessment data:
-    return score_func(y_assess, predictions_on_assess), confusion_matrix(y_assess, predictions_on_assess), assess_performance
+    return score_func(y_assess, predictions_on_assess), \
+           utils.cronbach_alpha(y_assess, predictions_on_assess), \
+           confusion_matrix(y_assess, predictions_on_assess), \
+           assess_performance
     
 
 def get_score_example_pairs(y, y_hat, examples):
@@ -236,6 +243,7 @@ def get_score_example_pairs(y, y_hat, examples):
 def print_verbose_overview(y, yhat):
     """ Print a performance overview """
     print "Correlation: ", pearsonr(y, yhat)[0]
+    print "Alpha: ", utils.cronbach_alpha(y, yhat)
     print "Classification report:"
     print classification_report(y, yhat, digits=3)
     print "Confusion matrix:"
@@ -257,12 +265,13 @@ def experiment_features_iterated(
     Generic iterated experimental framework for hand-crafted features. 
     """  
     correlation_overall = []
+    cronbach_overall = []
     conf_matrix_overall = None
     assess_performance = []
     while len(correlation_overall) < iterations:
         print "\nStarting iteration: %d/%d" % (len(correlation_overall)+1, iterations)
         try:
-            correlation_local, conf_matrix_local, perf_local = experiment_features(
+            correlation_local, cronbach_local, conf_matrix_local, perf_local = experiment_features(
                 train_reader=train_reader, 
                 assess_reader=assess_reader, 
                 train_size=train_size,
@@ -273,6 +282,7 @@ def experiment_features_iterated(
                 verbose=verbose)
                 
             correlation_overall.append(correlation_local[0])
+            cronbach_overall.append(cronbach_local)
             assess_performance.extend(perf_local)
             
             if conf_matrix_overall is None:
@@ -285,6 +295,7 @@ def experiment_features_iterated(
     if verbose:
         print "\n-- OVERALL --"
         print correlation_overall
+        print cronbach_overall
         print conf_matrix_overall
     
-    return correlation_overall, conf_matrix_overall, assess_performance
+    return correlation_overall, cronbach_overall, conf_matrix_overall, assess_performance

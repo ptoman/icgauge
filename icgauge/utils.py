@@ -179,3 +179,21 @@ def progress_bar(msg):
     sys.stderr.write(msg)
     sys.stderr.flush()
 
+def cronbach_alpha(truth, predictions):
+    """
+    Inputs:
+       truth, prediction: Nx1 np.arrays
+       Contain the values assigned to each item by truth 
+       and by the prediction
+
+    Returns:
+       Cronbach's alpha, a measure of internal consistency
+       fundamental to psychology
+
+    Implementation from http://stackoverflow.com/questions/20799403/
+    improving-performance-of-cronbach-alpha-code-python-numpy """
+    item_scores = np.vstack((truth, predictions))
+    item_vars = item_scores.var(axis=1, ddof=1)
+    t_scores = item_scores.sum(axis=0)
+    n_items = item_scores.shape[0]
+    return n_items / (n_items-1.) * (1 - item_vars.sum() / t_scores.var(ddof=1))
