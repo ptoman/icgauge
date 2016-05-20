@@ -15,3 +15,4 @@ modify.py
 *.png
 *.jpg
 *.jpeg
+*.ipynb_checkpoints
