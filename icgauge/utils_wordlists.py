@@ -85,7 +85,7 @@ def get_hedges():
             'it might not be possible', 'just', 'kind of', 'kinda', 
             'largely', 'likelihood', 'likely', 'look like', 'look probable', 
             'looked like', 'looks like', 'looks probable', 'mainly', 'may', 
-            'maybe', 'might', 'more', 'more or less', 'most of the time', 
+            'maybe', 'might', 'more', 'more or less', 'most', 'most of the time', 
             'mostly', 'must', 'nearly', 'never', 'normally', 'not necessarily', 
             'occasionally', 'often', 'once in a while', 'or thereabouts', 
             'overall', 'partially', 'perhaps', 'possibility', 'possible', 

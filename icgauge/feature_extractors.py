@@ -4,6 +4,7 @@
 from collections import Counter
 import re
 import os
+import pickle
 
 import numpy as np
 from sklearn.decomposition import PCA
@@ -15,7 +16,6 @@ import utils
 import utils_wordlists
 import utils_parsing
 import utils_similarity
-import pickle
 from utils_vsm import semantic_orientation_score_lexicon
 
 
@@ -25,6 +25,7 @@ path_to_glove = os.environ.get('GLV_HOME')
 if not path_to_glove:
   raise ImportError("GLV_HOME not defined as environmental variable")
 glove = None
+
 semantic_lexicon = None
 if os.path.exists(os.path.join('data/', 'semantic_lexicon.pickle')):
   semantic_lexicon = pickle.load(file(os.path.join('data/', 'semantic_lexicon.pickle')))
@@ -32,68 +33,66 @@ if os.path.exists(os.path.join('data/', 'semantic_lexicon.pickle')):
 # Note: Best to use independent namespaces for each key,
 # since multiple feature functions can be grouped together.
 
-# # for spell-checking
-# import re, collections
 
-# def words(text):
-#     return re.findall('[a-z]+', text.lower())
 
-# def train(features):
-#     model = collections.defaultdict(lambda: 1)
-#     for f in features:
-#         model[f] += 1
-#     return model
+###########################################
+# Master feature functions:
+###########################################
 
-# NWORDS = train(words(file('big.txt').read()))
-# alphabet = 'abcdefghijklmnopqrstuvwxyz'
+def baseline_features(paragraph, parse):
+  return manual_content_flags(paragraph, parse) | \
+    baseline_length(paragraph, parse)
 
-# def edits1(word):
-#     s = [(word[:i], word[i:]) for i in range(len(word) + 1)]
-#     deletes    = [a + b[1:] for a, b in s if b]
-#     transposes = [a + b[1] + b[0] + b[2:] for a, b in s if len(b)>1]
-#     replaces   = [a + c + b[1:] for a, b in s for c in alphabet if b]
-#     inserts    = [a + c + b     for a, b in s for c in alphabet]
-#     return set(deletes + transposes + replaces + inserts)
+def simple_features(paragraph, parse):
+  return lexical_features(paragraph, parse) | \
+    length(paragraph, parse) | \
+    syntactic_features(paragraph, parse)
 
-# def known_edits2(word):
-#     return set(e2 for e1 in edits1(word) for e2 in edits1(e1) if e2 in NWORDS)
+def semcom_sentiment_features(paragraph, parse):
+  return word_intensity(paragraph, unused_parse)
 
-# def known(words):
-#     return set(w for w in words if w in NWORDS)
+def semcom_pca_features(paragraph, unused_parse):
+  # As per experimental results, cumulative + 10 eigenvalues is best
+  return dimensional_decomposition(paragraph, unused_parse, 10)
 
-# def correct(word):
-#     candidates = known([word]) or known(edits1(word)) or    known_edits2(word) or [word]
-#     return max(candidates, key=NWORDS.get)
+def semcom_lstm_features(paragraph, unused_parse):
+  raise ValueError("LSTM features not yet implemented")
 
-def get_more_most_counts(paragraph, unused_parse):
-  """
-  Return a counter containing:
-   number of times 'more' occurs
-   number of times 'most' occurs
+def semcom_ka_features(paragraph, parse):
+  return kannan_ambili(paragraph, parse)
 
-  Parameters
-  ----------
-  paragraph : string
-      Content string from which features should be extracted.
+def all_features(paragraph, parse):
+  return baseline_features | \
+    lexical_features(paragraph, parse) | \
+    length(paragraph, parse) | \
+    syntactic_features(paragraph, parse) | \
+    semcom_sentiment_features | \
+    semcom_pca_features | \
+    semcom_lstm_features | \
+    semcom_ka_features
 
-  Returns
-  -------
-  dict : string -> integer    
-  """
-  features = Counter()
-  tokenized_and_lowercase = word_tokenize(paragraph.lower())
-  more_count = 0
-  most_count = 0
-  for w in tokenized_and_lowercase:  
-    if w == "more":
-      more_count += 1
-    elif w == "most":
-      most_count += 1
+##########################################
+# Sub-units (for ablation)
+# - lexicographic features (= length)
+# - lexical features (particular word categories)
+# - syntactic features (determiners & parse complexity)
+##########################################
+def lexical_features(paragraph, parse):
+  return get_morphological_counts(paragraph, parse) | \
+    modal_presence(paragraph, unused_parse) | \
+    transitional_presence(paragraph, unused_parse) | \
+    hedge_presence(paragraph, unused_parse) | \
+    conjunctives_presence(paragraph, unused_parse) | \
+    punctuation_presence(paragraph, unused_parse)
 
-  features['more_count'] = more_count
-  features['most_count'] = most_count
+def syntactic_features(paragraph, parse):
+  return determiner_usage(paragraph, parse) | \
+    syntactic_parse_features(paragraph, parse)
 
-  return Counter(features)
+
+###########################################
+# Components:
+###########################################
 
 def get_morphological_counts(paragraph, unused_parse):
   """
@@ -126,51 +125,6 @@ def get_morphological_counts(paragraph, unused_parse):
   return features
 
 
-def word_length_features(paragraph, unused_parse):
-    """
-    Return a counter containing:
-      avg_word_length
-      median_frequency_word_length
-      num_words_greater_than_6
-
-    Parameters
-    ----------
-    paragraph : string
-        Content string from which features should be extracted.
-
-    Returns
-    -------
-    dict : string -> integer
-    """
-    features = Counter()
-
-    features['avg_word_length'] = get_avg_word_length(paragraph)
-    features['median_frequency'] = get_median_frequency(paragraph)
-    features['num_words_greater_than_6'] = get_num_words_greater_than_x(paragraph, 6)
-
-    return features
-
-def get_avg_word_length(paragraph):
-    """
-    Return the average length of words
-    """
-    total_length = 0
-    tokenized_and_lowercase = word_tokenize(paragraph.lower())
-    for w in tokenized_and_lowercase:
-      total_length += len(w)
-
-    return total_length / len(tokenized_and_lowercase)
-
-def get_median_frequency(paragraph):
-    """
-    Return median length after sorting the words based on their length.
-    """
-    tokenized_and_lowercase = word_tokenize(paragraph.lower())
-    sorted_word_length_list = sorted([len(w) for w in tokenized_and_lowercase])
-    if len(sorted_word_length_list) % 2 == 1:
-      return sorted_word_length_list[len(sorted_word_length_list)/2]
-    return (sorted_word_length_list[len(sorted_word_length_list)/2 - 1] + sorted_word_length_list[len(sorted_word_length_list)/2])/2
-
 def word_intensity(paragraph, unused_parse):
     """
     Return level of word intensity in the paragraph based on semantic orientation.
@@ -185,10 +139,6 @@ def word_intensity(paragraph, unused_parse):
     -------
     dict : string -> float
     """
-    global glove
-    if glove == None:
-      glove = utils.glove2dict(os.path.join(path_to_glove, 
-              'glove.6B.%dd.txt' % GLOVE_SIZE))
     global semantic_lexicon
     if semantic_lexicon == None:
       glv = utils.build_glove(os.path.join(path_to_glove, 
@@ -197,6 +147,7 @@ def word_intensity(paragraph, unused_parse):
         negset=('little', 'few', 'never', 'low', 'negative', 'wrong', 'small', 'inferior', 'seldom'),
         posset=('extremely', 'many', 'always', 'high', 'positive', 'correct', 'big', 'superior', 'often'))
       pickle.dump(semantic_lexicon, open( "data/semantic_lexicon.pickle", "w+" ) )
+
     intensity = []
     sentence = []
     sentence_means = []
@@ -205,7 +156,7 @@ def word_intensity(paragraph, unused_parse):
         if word in semantic_lexicon:
             intensity.append(semantic_lexicon[word])
             sentence.append(semantic_lexicon[word])
-        if word == ".":
+        if word in [".", "?", "!"]:
             m = np.mean(sentence)
             sentence_means.append(m)
             sentence = []
@@ -214,15 +165,6 @@ def word_intensity(paragraph, unused_parse):
         sentence_var = np.var(sentence_means)
     # print {'all_var': np.var(intensity), 'sentence_var': sentence_var}
     return Counter({'all_var': np.var(intensity), 'sentence_var': sentence_var})
-
-
-def get_num_words_greater_than_x(paragraph, x):
-    """
-    return the number of words that have more than x characters
-    """
-    tokenized_and_lowercase = word_tokenize(paragraph.lower())
-    filtered_list = [w  for w in tokenized_and_lowercase if len(w) > x]
-    return len(filtered_list)
 
 def manual_content_flags(paragraph, unused_parse):
     """
@@ -262,99 +204,31 @@ def unigrams(paragraph, unused_parse):
     """Produces a feature function on unigrams."""
     return Counter(word_tokenize(paragraph))
 
+
 def length(paragraph, unused_parse):
     """
     Produces length-related features. Rocket goes to the predictive
     performance of just this feature on the toy data (correlation between it
     and the human scores):
-        - number of characters ==> 0.61 correlation (good feature)
+        - number of characters ==> 0.61 correlation [cur excluded]
         - number of white-space separated words (tokens) => 0.59
         - mean length of white-space separated tokens => 0.13
+        - median length of white-space separated tokens [cur excluded]
+        - count of words greater than length 6
     """
-    tokens = word_tokenize(paragraph)
+    MIN_LENGTH = 6
     result = Counter()
+    tokens = word_tokenize(paragraph)
+
     result["length_in_characters"] = len(paragraph)
     result["length_in_words"] = len(tokens)
-    result["length_mean_word_len"] = np.mean([len(t) for t in tokens])
+
+    word_lengths = [len(t) for t in tokens]
+    result["length_mean_word_len"] = np.mean(word_lengths) #equiv to avg_word_length
+    result["length_median_word_len"] = np.median(word_lengths) #equiv to median_frequency
+    result["num_words_greater_than_6"] = len([w for w in tokens if len(w) > MIN_LENGTH])
     return result
-    
-def wordlist_presence(wordlist_func, paragraph):
-    """
-    Produces feature list that is:
-        - count of each word in the list generated by wordlist_func
-        - count of tokens
-        - count of types
-        - proportion of tokens in paragraph that are in that list
-    using a lower-case version of the original paragraph and a version of
-    the paragraph in which all the tokens are separated by spaces (to 
-    address cases where morphological forms are attached -- e.g.,
-    "wouldn't" --> "would n't")
-    """
-    presence = Counter()
-    paragraph = paragraph.lower()
-    reconstituted_paragraph = " ".join(word_tokenize(paragraph))
-    
-    wordlist = wordlist_func()
-    for phrase in wordlist:
-        matcher = re.compile(r'\b({0})\b'.format(phrase), flags=re.IGNORECASE)
-        matches = matcher.findall(paragraph)
-        if len(matches) > 0:
-            presence[phrase] += len(matches)
-        else:
-            matches = matcher.findall(reconstituted_paragraph)
-            if len(matches) > 0:
-                presence[phrase] += len(matches)
-    
-    return presence
 
-def modal_presence(paragraph, unused_parse):
-    modals = wordlist_presence(utils_wordlists.get_modals, paragraph)
-    tokens = word_tokenize(paragraph)
-    
-    modals["modal_count_token"] = np.sum( \
-        [value for key, value in modals.items()])    
-    modals["modal_count_type"] = len(modals) - 1 # -1 bc *_count_token
-    modals["modal_freq"] = 1.0*modals["modal_count_token"] / len(tokens)
-    
-    return modals
-    
-def transitional_presence(paragraph, unused_parse):
-    transitional = wordlist_presence(utils_wordlists.get_transitional, paragraph)
-    transitional["transitional_count_token"] = np.sum( \
-        [value for key, value in transitional.items()])    
-    transitional["transitional_count_type"] = len(transitional) - 1 # -1 bc *_count_token
-    return transitional
-    
-def hedge_presence(paragraph, unused_parse):
-    hedges = wordlist_presence(utils_wordlists.get_hedges, paragraph)
-    hedges["hedge_count_token"] = np.sum( \
-        [value for key, value in hedges.items()])    
-    hedges["hedge_count_type"] = len(hedges) - 1 # -1 bc *_count_token
-    return hedges
-
-def conjunctives_presence(paragraph, unused_parse):
-    conjunctives = wordlist_presence(utils_wordlists.get_conjunctives, paragraph)
-    conjunctives["conjunctive_count_token"] = np.sum( \
-        [value for key, value in conjunctives.items()])    
-    conjunctives["conjunctive_count_type"] = len(conjunctives) - 1 # -1 bc *_count_token
-    return conjunctives
-
-def punctuation_presence(paragraph, unused_parse):
-    punctuation = utils_wordlists.get_punctuation()
-    tokens = word_tokenize(paragraph.lower())
-    
-    result = Counter()
-    for mark in punctuation:
-        ct = tokens.count(mark)
-        if ct > 0:
-            result[mark] = ct
-            
-    result["punctuation_count_token"] = np.sum( \
-        [value for key, value in result.items()])    
-    result["punctuation_count_type"] = len(result) - 1 # -1 bc *_count_token
-    result["punctuation_freq"] = 1.0*result["punctuation_count_token"] / len(tokens)
-    
-    return result
 
 def determiner_usage(paragraph, parse, verbose=False):
   """
@@ -413,7 +287,7 @@ def determiner_usage(paragraph, parse, verbose=False):
           pos = pos[:-1]
   return features
 
-def dimensional_decomposition(paragraph, unused_parse, num_dimensions_to_accumulate=5):
+def dimensional_decomposition(paragraph, unused_parse, num_dimensions_to_accumulate=10):
   """ Gets the extent to which the word embeddings used in a paragraph
   can be reduced to to low-dimensional space.  Low-dimensional space is
   derived by PCA.
@@ -431,8 +305,25 @@ def dimensional_decomposition(paragraph, unused_parse, num_dimensions_to_accumul
      with the score -- this is extremely encouraging!  The second-fifth
      cumulative dimensions are even stronger, all at about -0.56.
 
-     Best to use a smaller number of dimensions (like 50), else we risk
+     Best to accumulate 10 dimensions -- we get as good performance as
+     possible with 10 (no improvement with 20, 50, but some loss at 
+     lower values). (This suggests human text complexities fit in 
+     relatively low dimensional spaces -- but are more complex than that, 
+     because using this feature alone doesn't lead to particularly high
+     performance.)
+
+     Can't use a large number of dimensions (like 50), else we risk
      a highly overdetermined system of equations when heading into PCA.
+
+     Cross-validation on LogisticAT for ordinal regression prefers an 
+     alpha of 0.2 with this problem formulation.
+
+     This may not be capturing a lot beyond paragraph length, 
+     unfortunately. Performance suggests that using only word length, we can
+     get 0.33 +/- 0.06 correlation, using only dimensional, we get 0.39 +/- 0.03,
+     and using both we're at 0.39 +/- 0.03 -- these are statistically noisy.
+     So we unfortunately can't say much about whether PCA is getting more than 
+     just number of words.
 
   Returns:
      dictionary, with keys:
@@ -441,33 +332,40 @@ def dimensional_decomposition(paragraph, unused_parse, num_dimensions_to_accumul
            of variance explained when that number of dimensions 
            is considered
   """
-  global glove
-  if glove == None:
-    glove = utils.glove2dict(os.path.join(path_to_glove, 
-            'glove.6B.%dd.txt' % GLOVE_SIZE))
-
-  approx_num_words = int(1.5*len(paragraph.split()))
-  word_vector = np.zeros((approx_num_words, GLOVE_SIZE))
-  row = 0
-  words = []
-  for sent in sent_tokenize(paragraph):
-    for word in word_tokenize(sent):
-      word = word.lower()
-      if word in glove and word not in words:
-        word_vector[row] = glove[word]
-        words.append(word)
-        row += 1
-  word_vector = word_vector[:row,:]
-  #print words
-
-  pca = PCA()
-  pca.fit(word_vector)
+  pca = derive_pca_on_glove(paragraph, num_dimensions_to_accumulate)
 
   features = Counter()
   for i in range(num_dimensions_to_accumulate):
     features["cum_pca_var_expl_%d" % i] = np.sum(pca.explained_variance_ratio_[:i+1])
 
   return features
+
+def dimensional_decomposition_noncumulative(paragraph, unused_parse, 
+  num_dimensions_to_accumulate=50):
+  """ Similar to `dimensional_decomposition`, but does not cumsum the 
+  eigenvalues -- instead returns the full set of `num_dimensions_to_accumulate`
+  values as unique variables.  If the paragraph has fewer unique GloVe words
+  than is `num_dimensions_to_accumulate`, pads resulting "variance explained
+  by each dimension" vector with zero. 
+
+  Non-cumulative performs worse than cumulative (e.g., correlations of 0.30
+  instead of 0.39), so we opt against using it. 
+
+  """
+  
+  pca = derive_pca_on_glove(paragraph, num_dimensions_to_accumulate)
+  num_usable_dimensions = pca.explained_variance_ratio_.shape[0]
+
+  features = Counter()
+  for i in range(num_dimensions_to_accumulate):
+    label = "explained_dim_"+str(i)
+    if i < num_usable_dimensions:
+      features[label] = pca.explained_variance_ratio_[i]
+    else:
+      features[label] = 0
+
+  return features
+
 
 def syntactic_parse_features(paragraph, parse):
   """ Returns the count for the usage of S, SBAR units in the syntactic parse,
@@ -531,6 +429,139 @@ def kannan_ambili(paragraph, parse):
   paragraph_semsim = np.exp(-np.sum(similarities.mean(axis=1)))
 
   return Counter({"kannan_ambili": paragraph_semsim})
+
+############################
+# Filtered length functions
+############################
+
+def keep_only(all_features, list_of_labels):
+  features = Counter()
+  for label in list_of_labels:
+    features[label] = all_features[label]
+  return features
+
+def baseline_length(paragraph, unused_parse):
+  """ Subsets the length features to only those used in the baseline """
+  return keep_only(length(paragraph, unused_parse), ["length_in_words", "num_words_greater_than_6"])
+
+def number_words_only(paragraph, unused_parse):
+  """ Subsets the length features to only the number of words used """
+  return keep_only(length(paragraph, unused_parse), ["length_in_words"])
+
+
+#############################
+# Helper functions
+#############################
+def wordlist_presence(wordlist_func, paragraph):
+    """
+    Helper. Produces feature list that is:
+        - count of each word in the list generated by wordlist_func
+        - count of tokens
+        - count of types
+        - proportion of tokens in paragraph that are in that list
+    using a lower-case version of the original paragraph and a version of
+    the paragraph in which all the tokens are separated by spaces (to 
+    address cases where morphological forms are attached -- e.g.,
+    "wouldn't" --> "would n't")
+    """
+    presence = Counter()
+    paragraph = paragraph.lower()
+    reconstituted_paragraph = " ".join(word_tokenize(paragraph))
+    
+    wordlist = wordlist_func()
+    for phrase in wordlist:
+        matcher = re.compile(r'\b({0})\b'.format(phrase), flags=re.IGNORECASE)
+        matches = matcher.findall(paragraph)
+        if len(matches) > 0:
+            presence[phrase] += len(matches)
+        else:
+            matches = matcher.findall(reconstituted_paragraph)
+            if len(matches) > 0:
+                presence[phrase] += len(matches)
+    
+    return presence
+
+def modal_presence(paragraph, unused_parse):
+    """ Calculates the presence of modals """
+    modals = wordlist_presence(utils_wordlists.get_modals, paragraph)
+    tokens = word_tokenize(paragraph)
+    
+    modals["modal_count_token"] = np.sum( \
+        [value for key, value in modals.items()])    
+    modals["modal_count_type"] = len(modals) - 1 # -1 bc *_count_token
+    modals["modal_freq"] = 1.0*modals["modal_count_token"] / len(tokens)
+    
+    return modals
+    
+def transitional_presence(paragraph, unused_parse):
+    """ Calculates the presence of transitional phrases """
+    transitional = wordlist_presence(utils_wordlists.get_transitional, paragraph)
+    transitional["transitional_count_token"] = np.sum( \
+        [value for key, value in transitional.items()])    
+    transitional["transitional_count_type"] = len(transitional) - 1 # -1 bc *_count_token
+    return transitional
+    
+def hedge_presence(paragraph, unused_parse):
+    """ Calculates the presence of hedges  """
+    hedges = wordlist_presence(utils_wordlists.get_hedges, paragraph)
+    hedges["hedge_count_token"] = np.sum( \
+        [value for key, value in hedges.items()])    
+    hedges["hedge_count_type"] = len(hedges) - 1 # -1 bc *_count_token
+    return hedges
+
+def conjunctives_presence(paragraph, unused_parse):
+    """ Calculates the presence of conjunctives """
+    conjunctives = wordlist_presence(utils_wordlists.get_conjunctives, paragraph)
+    conjunctives["conjunctive_count_token"] = np.sum( \
+        [value for key, value in conjunctives.items()])    
+    conjunctives["conjunctive_count_type"] = len(conjunctives) - 1 # -1 bc *_count_token
+    return conjunctives
+
+def punctuation_presence(paragraph, unused_parse):
+    """ Calculates the presence of punctuation """
+    punctuation = utils_wordlists.get_punctuation()
+    tokens = word_tokenize(paragraph.lower())
+    
+    result = Counter()
+    for mark in punctuation:
+        ct = tokens.count(mark)
+        if ct > 0:
+            result[mark] = ct
+            
+    result["punctuation_count_token"] = np.sum( \
+        [value for key, value in result.items()])    
+    result["punctuation_count_type"] = len(result) - 1 # -1 bc *_count_token
+    result["punctuation_freq"] = 1.0*result["punctuation_count_token"] / len(tokens)
+    
+    return result
+
+def derive_pca_on_glove(paragraph, num_dimensions_to_accumulate):
+  """ Helper function to get PCA decomposition of GLOVE vectors in paragraph """
+  global glove
+  if glove == None:
+    glove = utils.glove2dict(os.path.join(path_to_glove, 
+            'glove.6B.%dd.txt' % GLOVE_SIZE))
+
+  approx_num_words = int(1.5*len(paragraph.split()))
+  word_vector = np.zeros((approx_num_words, GLOVE_SIZE))
+  row = 0
+  words = []
+  for sent in sent_tokenize(paragraph):
+    for word in word_tokenize(sent):
+      word = word.lower()
+      if word in glove and word not in words:
+        word_vector[row] = glove[word]
+        words.append(word)
+        row += 1
+  word_vector = word_vector[:row,:]
+  #print words
+
+  pca = PCA(n_components = num_dimensions_to_accumulate)
+  pca.fit(word_vector)
+
+  return pca
+
+
 
 # Other potentially useful:
 # - syntactic: passive voice

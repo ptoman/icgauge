@@ -182,7 +182,7 @@ def progress_bar(msg):
 def cronbach_alpha(truth, predictions):
     """
     Inputs:
-       truth, prediction: Nx1 np.arrays
+       truth, prediction: Nx1 (or (N,)) np.arrays
        Contain the values assigned to each item by truth 
        and by the prediction
 

@@ -74,3 +74,8 @@ def train_and_dev():
 def test():
     """ Returns a reader for the combined test data """
     return read_format(["data/test.json"])
+
+def test_official():
+    """ Returns a reader for the combined test data """
+    return read_format(["data/test/test1.json_parsed.json"])
+

@@ -50,7 +50,20 @@ def fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
     print("Best score: %0.03f" % crossvalidator.best_score_)
     # Return the best model found:
     return crossvalidator.best_estimator_
+
+def fit_maxent(X, y):
+    """A classification model of dataset. L2 regularized."""   
+    basemod = LogisticRegression(penalty='l2')
+    basemod.fit(X,y)
+    return basemod    
+
+def fit_maxent_balanced(X, y):
+    """A classification model of dataset. L2 regularized & forces balanced classes."""   
+    basemod = LogisticRegression(penalty='l2', class_weight='balanced')
+    basemod.fit(X,y)
+    return basemod
     
+
 def fit_maxent_with_crossvalidation(X, y):
     """A classification model of dataset with hyperparameter 
     cross-validation. Maximum entropy/logistic regression variant.
@@ -98,7 +111,7 @@ def fit_logistic_it_with_crossvalidation(X, y):
     
     basemod = mord.LogisticIT()
     cv = 5
-    param_grid = {'alpha': [0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0]}    
+    param_grid = {'alpha': [0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0]}    
     return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
                                                verbose=False)
                                                
