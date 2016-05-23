@@ -51,20 +51,32 @@ def fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
     # Return the best model found:
     return crossvalidator.best_estimator_
 
-def fit_maxent(X, y):
-    """A classification model of dataset. L2 regularized."""   
-    basemod = LogisticRegression(penalty='l2')
+def fit_maxent(X, y, C = 1.0):
+    """A classification model of dataset. L2 regularized.
+
+       C : float, optional (default=1.0)
+           Inverse of regularization strength; must be a positive float. 
+           Like in support vector machines, smaller values specify 
+           stronger regularizatioN
+    """   
+    basemod = LogisticRegression(penalty='l2', C = C)
     basemod.fit(X,y)
     return basemod    
 
-def fit_maxent_balanced(X, y):
-    """A classification model of dataset. L2 regularized & forces balanced classes."""   
-    basemod = LogisticRegression(penalty='l2', class_weight='balanced')
+def fit_maxent_balanced(X, y, C = 1.0):
+    """A classification model of dataset. L2 regularized & forces balanced classes.
+
+       C : float, optional (default=1.0)
+           Inverse of regularization strength; must be a positive float. 
+           Like in support vector machines, smaller values specify 
+           stronger regularizatioN
+    """   
+    basemod = LogisticRegression(penalty='l2', class_weight='balanced', C = C)
     basemod.fit(X,y)
     return basemod
     
 
-def fit_maxent_with_crossvalidation(X, y):
+def fit_maxent_with_crossvalidation(X, y, C = 1.0):
     """A classification model of dataset with hyperparameter 
     cross-validation. Maximum entropy/logistic regression variant.
     
@@ -93,7 +105,7 @@ def fit_maxent_with_crossvalidation(X, y):
         A trained model instance, the best model found.
     """    
     
-    basemod = LogisticRegression()
+    basemod = LogisticRegression(penalty='l2', C = C)
     cv = 5
     param_grid = {'fit_intercept': [True, False], 
                   'C': [0.4, 0.6, 0.8, 1.0, 2.0, 3.0],
@@ -102,54 +114,70 @@ def fit_maxent_with_crossvalidation(X, y):
                                                verbose=False)
     
     
-def fit_logistic_it_with_crossvalidation(X, y):
+def fit_logistic_it_with_crossvalidation(X, y, alpha = 1.0):
     """An ordinal model of dataset with hyperparameter 
     cross-validation.  Immediate-Threshold (logistic/threshold) variant.
     
     Parameters & returns as per other training functions.
+    
+    alpha: float :
+        Regularization parameter. Zero is no regularization, 
+        higher values increate the squared l2 regularization.
     """    
     
-    basemod = mord.LogisticIT()
+    basemod = mord.LogisticIT(alpha = alpha)
     cv = 5
     param_grid = {'alpha': [0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0]}    
     return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
                                                verbose=False)
                                                
-def fit_logistic_at(X, y):
+def fit_logistic_at(X, y, alpha = 1.0):
     """An ordinal model of dataset without hyperparameter 
     cross-validation -- uses defaults.  
     All-Threshold (logistic/threshold) variant, recommended over 
     Intermediate-Threshold variant in Rennie and Srebro 2005.
     
     Parameters & returns as per other training functions.
+
+    alpha: float :
+        Regularization parameter. Zero is no regularization, 
+        higher values increate the squared l2 regularization.
     """    
     
-    basemod = mord.LogisticAT() 
+    basemod = mord.LogisticAT(alpha = alpha)
     basemod.fit(X,y)
     return basemod
 
-def fit_logistic_at_with_crossvalidation(X, y):
+def fit_logistic_at_with_crossvalidation(X, y, alpha = 1.0):
     """An ordinal model of dataset with hyperparameter 
     cross-validation.  All-Threshold (logistic/threshold) variant.
     Recommended over Intermediate-Threshold variant in Rennie and Srebro 2005.
     
     Parameters & returns as per other training functions.
+
+    alpha: float :
+        Regularization parameter. Zero is no regularization, 
+        higher values increate the squared l2 regularization.
     """    
     
-    basemod = mord.LogisticAT()
+    basemod = mord.LogisticAT(alpha = alpha)
     cv = 5
     param_grid = {'alpha': [0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0]}    
     return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
                                                verbose=False)
                                                
-def fit_logistic_or_with_crossvalidation(X, y):
+def fit_logistic_or_with_crossvalidation(X, y, alpha = 1.0):
     """An ordinal model of dataset with hyperparameter 
     cross-validation.  Ordinal Ridge (regression) variant.
     
     Parameters & returns as per other training functions.
+
+    alpha: float :
+        Regularization parameter. Zero is no regularization, 
+        higher values increate the squared l2 regularization.
     """    
     
-    basemod = mord.OrdinalRidge()
+    basemod = mord.OrdinalRidge(alpha = alpha)
     cv = 5
     param_grid = {'fit_intercept': [True, False], 
                   'alpha': [0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0],
@@ -157,14 +185,18 @@ def fit_logistic_or_with_crossvalidation(X, y):
     return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
                                                verbose=False)
                                                
-def fit_logistic_mcl_with_crossvalidation(X, y):
+def fit_logistic_mcl_with_crossvalidation(X, y, alpha = 1.0):
     """An ordinal model of dataset with hyperparameter 
     cross-validation.  Multiclass Logistic (logistic/classification) variant.
     
     Parameters & returns as per other training functions.
+
+    alpha: float :
+        Regularization parameter. Zero is no regularization, 
+        higher values increate the squared l2 regularization.
     """    
     
-    basemod = mord.MulticlassLogistic()
+    basemod = mord.MulticlassLogistic(alpha = alpha)
     cv = 5
     param_grid = {'alpha': [0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0]}
     return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
