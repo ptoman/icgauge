@@ -16,3 +16,4 @@ modify.py
 *.jpg
 *.jpeg
 *.ipynb_checkpoints
+*.jsonl
