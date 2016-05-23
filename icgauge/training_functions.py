@@ -124,7 +124,7 @@ def fit_logistic_at(X, y):
     Parameters & returns as per other training functions.
     """    
     
-    basemod = mord.LogisticAT() 
+    basemod = mord.LogisticAT(alpha=2.0) 
     basemod.fit(X,y)
     return basemod
 

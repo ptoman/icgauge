@@ -224,8 +224,13 @@ def experiment_features(
         print "\n-- ASSESSMENT RESULTS --"
         print_verbose_overview(y_assess, predictions_on_assess)
 
+    try:
+        the_score = score_func(y_assess, predictions_on_assess)
+    except:
+        the_score = (0,0)
+
     # Return the overall results on the assessment data:
-    return score_func(y_assess, predictions_on_assess), \
+    return the_score, \
            utils.cronbach_alpha(y_assess, predictions_on_assess), \
            confusion_matrix(y_assess, predictions_on_assess), \
            assess_performance

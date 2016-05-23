@@ -422,6 +422,8 @@ def kannan_ambili(paragraph, parse):
   Empirical results:
     This feature correlates with toy data scores at 0.23.
   """
+  np.seterr(all='raise')
+
   trees = []
   for t_string in parse:
     trees.append(Tree.fromstring(t_string))
@@ -431,6 +433,9 @@ def kannan_ambili(paragraph, parse):
   first_sentence_tokens = utils_parsing.get_nouns_verbs([first_tree])
   rest_trees = trees[1:]
   rest_sentences_tokens = utils_parsing.get_nouns_verbs(rest_trees) 
+
+  if len(rest_sentences_tokens) == 0:
+    return Counter()
 
   similarities = np.zeros((len(first_sentence_tokens), len(rest_sentences_tokens)))
   for i, tuple1 in enumerate(first_sentence_tokens):
