@@ -49,7 +49,7 @@ def simple_features(paragraph, parse):
     syntactic_features(paragraph, parse)
 
 def semcom_sentiment_features(paragraph, parse):
-  return word_intensity(paragraph, unused_parse)
+  return word_intensity(paragraph, parse)
 
 def semcom_pca_features(paragraph, unused_parse):
   # As per experimental results, cumulative + 10 eigenvalues is best
@@ -147,6 +147,7 @@ def word_intensity(paragraph, unused_parse):
     """
     AVG_SENTENCE_LENGTH = 15
 
+    ##   Reading in locally cached Glove File
     global semantic_lexicon
     if semantic_lexicon == None:
       glv = utils.build_glove(os.path.join(path_to_glove, 
@@ -156,26 +157,32 @@ def word_intensity(paragraph, unused_parse):
         posset=('extremely', 'many', 'always', 'high', 'positive', 'correct', 'big', 'superior', 'often'))
       pickle.dump(semantic_lexicon, open( "data/semantic_lexicon.pickle", "w+" ) )
 
+    ##   Calculate word and sentence sentiment variance
     intensity = []
     sentence = []
     sentence_means = []
     tokenized_and_lowercase = word_tokenize(paragraph.lower())
+    punctuated = "." in tokenized_and_lowercase    #   Use this to account for punctuation
+    #   punctuated = False    #   Use this when dataset has no punctuation
     for word in tokenized_and_lowercase:
         if word in semantic_lexicon:
             intensity.append(semantic_lexicon[word])
             sentence.append(semantic_lexicon[word])
-        # if word  in [".", "?", "!"]:
-        if len(sentence) >= AVG_SENTENCE_LENGTH:
+        if (not punctuated and len(sentence) >= AVG_SENTENCE_LENGTH) \
+        or (punctuated and word  in [".", "?", "!"]):
             m = np.mean(sentence)
             sentence_means.append(m)
             sentence = []
     m = np.mean(sentence)
     sentence_means.append(m)
-    sentence_var = 0
+    sentence_var = 0         # 0 variance when there's only 1 sentence
     if len(sentence_means) > 1:
         sentence_var = np.var(sentence_means)
     # print {'all_var': np.var(intensity), 'sentence_var': sentence_var}
+    max_intensity = max(intensity)
+    min_intensity = min(intensity)
     return Counter({'all_var': np.var(intensity), 'sentence_var': sentence_var})
+    # return Counter({'min_max': max_intensity - min_intensity})
 
 def manual_content_flags(paragraph, unused_parse):
     """

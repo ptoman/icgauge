@@ -8,7 +8,6 @@ import mord
 def fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid, 
                                         scoring='f1_macro', verbose=False): 
     """Fit a classifier with hyperparmaters set via cross-validation.
-
     Parameters
     ----------
     X : 2d np.array
@@ -53,7 +52,6 @@ def fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
 
 def fit_maxent(X, y, C = 1.0):
     """A classification model of dataset. L2 regularized.
-
        C : float, optional (default=1.0)
            Inverse of regularization strength; must be a positive float. 
            Like in support vector machines, smaller values specify 
@@ -65,7 +63,6 @@ def fit_maxent(X, y, C = 1.0):
 
 def fit_maxent_balanced(X, y, C = 1.0):
     """A classification model of dataset. L2 regularized & forces balanced classes.
-
        C : float, optional (default=1.0)
            Inverse of regularization strength; must be a positive float. 
            Like in support vector machines, smaller values specify 
@@ -138,7 +135,6 @@ def fit_logistic_at(X, y, alpha = 1.0):
     Intermediate-Threshold variant in Rennie and Srebro 2005.
     
     Parameters & returns as per other training functions.
-
     alpha: float :
         Regularization parameter. Zero is no regularization, 
         higher values increate the squared l2 regularization.
@@ -154,7 +150,6 @@ def fit_logistic_at_with_crossvalidation(X, y, alpha = 1.0):
     Recommended over Intermediate-Threshold variant in Rennie and Srebro 2005.
     
     Parameters & returns as per other training functions.
-
     alpha: float :
         Regularization parameter. Zero is no regularization, 
         higher values increate the squared l2 regularization.
@@ -171,7 +166,6 @@ def fit_logistic_or_with_crossvalidation(X, y, alpha = 1.0):
     cross-validation.  Ordinal Ridge (regression) variant.
     
     Parameters & returns as per other training functions.
-
     alpha: float :
         Regularization parameter. Zero is no regularization, 
         higher values increate the squared l2 regularization.
@@ -190,7 +184,6 @@ def fit_logistic_mcl_with_crossvalidation(X, y, alpha = 1.0):
     cross-validation.  Multiclass Logistic (logistic/classification) variant.
     
     Parameters & returns as per other training functions.
-
     alpha: float :
         Regularization parameter. Zero is no regularization, 
         higher values increate the squared l2 regularization.

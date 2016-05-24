@@ -150,6 +150,7 @@ def get_transitional():
     List extracted from GRE study guid, including consequence, contrast, diversion, 
     emphasis, etc.
     If gives good performance, can expand the list using more existing phrase base.
+    Adapted from: http://www.studygs.net/wrtstr6.htm
     """
     addition = ["also", "again", "as well as", "besides", "coupled with", "furthermore", 
         "in addition", "likewise", "moreover", "similarly"]
