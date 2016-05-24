@@ -88,7 +88,7 @@ def build_dataset(reader, phi_list, class_func, vectorizer=None, verbose=False):
     print "Completed all feature extraction: %d units" % (i+1)
     # In training, we want a new vectorizer, but in 
     # assessment, we featurize using the existing vectorizer:
-    feat_matrix = None    
+    feat_matrix = None
     if vectorizer == None:
         vectorizer = DictVectorizer(sparse=True)
         feat_matrix = vectorizer.fit_transform(feat_dicts)
@@ -108,7 +108,6 @@ def experiment_features(
         class_func=lt.identity_class_func,
         train_func=training.fit_logistic_at_with_crossvalidation,
         score_func=utils.safe_weighted_f1,
-        reg = 1.0,
         verbose=True):
     """Generic experimental framework for hand-crafted features. 
     Either assesses with a random train/test split of `train_reader` 
@@ -266,7 +265,6 @@ def experiment_features_iterated(
         train_func=training.fit_logistic_at_with_crossvalidation,
         score_func=utils.safe_weighted_f1,
         verbose=True,
-        reg = 1,
         iterations=1):
     """
     Generic iterated experimental framework for hand-crafted features. 
@@ -285,7 +283,6 @@ def experiment_features_iterated(
                 phi_list=phi_list, 
                 class_func=class_func,
                 train_func=train_func,
-                reg = reg,
                 score_func=score_func,
                 verbose=verbose)
                 
