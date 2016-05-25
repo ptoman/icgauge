@@ -62,14 +62,14 @@ def semcom_ka_features(paragraph, parse):
   return kannan_ambili(paragraph, parse)
 
 def all_features(paragraph, parse):
-  return baseline_features | \
+  return baseline_features(paragraph, parse) | \
     lexical_features(paragraph, parse) | \
     length(paragraph, parse) | \
     syntactic_features(paragraph, parse) | \
-    semcom_sentiment_features | \
-    semcom_pca_features | \
-    semcom_lstm_features | \
-    semcom_ka_features
+    semcom_sentiment_features(paragraph, parse) | \
+    semcom_pca_features(paragraph, parse) | \
+    semcom_lstm_features(paragraph, parse) | \
+    semcom_ka_features(paragraph, parse)
 
 ##########################################
 # Sub-units (for ablation)
