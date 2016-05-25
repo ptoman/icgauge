@@ -56,7 +56,7 @@ def semcom_pca_features(paragraph, unused_parse):
   return dimensional_decomposition(paragraph, unused_parse, 10)
 
 def semcom_lstm_features(paragraph, unused_parse):
-  raise ValueError("LSTM features not yet implemented")
+  return Counter() #raise ValueError("LSTM features not yet implemented")
 
 def semcom_ka_features(paragraph, parse):
   return kannan_ambili(paragraph, parse)
@@ -173,8 +173,10 @@ def word_intensity(paragraph, unused_parse):
             m = np.mean(sentence)
             sentence_means.append(m)
             sentence = []
-    m = np.mean(sentence)
-    sentence_means.append(m)
+    if len(sentence) > 0: # Capture any leftovers
+        print sentence
+        m = np.mean(sentence)
+        sentence_means.append(m)
     sentence_var = 0         # 0 variance when there's only 1 sentence
     if len(sentence_means) > 1:
         sentence_var = np.var(sentence_means)
