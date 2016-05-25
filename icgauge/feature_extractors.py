@@ -181,8 +181,8 @@ def word_intensity(paragraph, unused_parse):
     # print {'all_var': np.var(intensity), 'sentence_var': sentence_var}
     max_intensity = max(intensity)
     min_intensity = min(intensity)
-    return Counter({'all_var': np.var(intensity), 'sentence_var': sentence_var})
-    # return Counter({'min_max': max_intensity - min_intensity})
+    # return Counter({'all_var': np.var(intensity), 'sentence_var': sentence_var})
+    return Counter({'min_max': max_intensity - min_intensity})
 
 def manual_content_flags(paragraph, unused_parse):
     """

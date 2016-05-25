@@ -17,7 +17,7 @@ import icgauge
 from icgauge import experiment_frameworks
 
 
-corr, conf_matrix, details = experiment_frameworks.experiment_features_iterated(
+corr, alpha, conf_matrix, details = experiment_frameworks.experiment_features_iterated(
     train_reader=icgauge.data_readers.train, 
     assess_reader=None, 
     train_size=0.7,
@@ -44,11 +44,18 @@ corr, conf_matrix, details = experiment_frameworks.experiment_features_iterated(
     verbose=False)
 
 # Print out the results
+# Print out the results
 print "\n-- AFTER COMPLETION --"
-print "Averaged correlation: " 
-print np.mean(corr)
+print "Averaged correlation (95% CI): " 
+print np.round(np.mean(corr),2), "+/-", np.round(np.std(corr),2)
 print "All correlations:"
 print corr
+print
+print "Averaged Cronbach's alpha (95% CI): " 
+print np.round(np.mean(alpha),2), "+/-", np.round(np.std(alpha),2)
+print "All alphas:"
+print alpha
+print
 print "Confusion matrix:"
 print conf_matrix
 
