@@ -33,7 +33,14 @@ if os.path.exists(os.path.join('data/', 'semantic_lexicon.pickle')):
 # Note: Best to use independent namespaces for each key,
 # since multiple feature functions can be grouped together.
 
+lstm_vocab = None
+if os.path.exists(os.path.join('data/', 'lstm_vocab')):
+  lstm_vocab = pickle.load(file(os.path.join('data/', 'lstm_vocab')))
 
+
+lstm_representation_dict = None
+if os.path.exists(os.path.join('data/', 'lstm_representation_dict')):
+  lstm_representation_dict = pickle.load(file(os.path.join('data/', 'lstm_representation_dict')))
 
 ###########################################
 # Master feature functions:
@@ -56,7 +63,9 @@ def semcom_pca_features(paragraph, unused_parse):
   return dimensional_decomposition(paragraph, unused_parse, 10)
 
 def semcom_lstm_features(paragraph, unused_parse):
-  return Counter() #raise ValueError("LSTM features not yet implemented")
+  global lstm_representation_dict
+  result = lstm_representation_dict[paragraph][0]
+  return Counter({'lhs_prob': result[0], 'rhs_prob': result[1]})
 
 def semcom_ka_features(paragraph, parse):
   return kannan_ambili(paragraph, parse)
