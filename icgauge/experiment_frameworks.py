@@ -2,6 +2,8 @@
 #!/usr/bin/python
 
 import numpy as np
+import scipy
+from sklearn import preprocessing
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
@@ -13,9 +15,6 @@ import feature_extractors as fe
 import label_transformers as lt
 import training_functions as training
 import utils
-
-# May eventually add other frameworks (e.g., neural network, rule-based)
-
 
 def build_dataset(reader, phi_list, class_func, vectorizer=None, verbose=False):
     """Core general function for building experimental
@@ -58,7 +57,7 @@ def build_dataset(reader, phi_list, class_func, vectorizer=None, verbose=False):
     raw_examples = []
     rows = []
     for i, (paragraph, parse, label) in enumerate(reader()):
-        if i % 25 == 0:
+        if i % 100 == 0:
             print "   Starting feature extraction for unit #%d " % (i+1)
         cls = class_func(label)
         #print label, cls
@@ -107,7 +106,7 @@ def experiment_features(
         phi_list=[fe.manual_content_flags], 
         class_func=lt.identity_class_func,
         train_func=training.fit_logistic_at_with_crossvalidation,
-        score_func=utils.safe_weighted_f1,
+        score_func=scipy.stats.stats.pearsonr,
         verbose=True):
     """Generic experimental framework for hand-crafted features. 
     Either assesses with a random train/test split of `train_reader` 
@@ -206,6 +205,24 @@ def experiment_features(
             class_func, 
             vectorizer=train['vectorizer'])
         X_assess, y_assess, assess_examples = assess['X'], assess['y'], np.array(assess['raw_examples'])
+
+    # Normalize:
+    nonzero_cells = len(X_train.nonzero()[0])
+    total_cells = 1.*X_train.shape[0] * X_train.shape[1]
+    proportion_nonzero = nonzero_cells/total_cells
+    print "sparsity: %g/1 are nonzero" % proportion_nonzero
+
+    if proportion_nonzero > 0.5: # if dense matrix
+        X_train = X_train.toarray()
+        X_assess = X_assess.toarray()
+        scaler = preprocessing.StandardScaler().fit(X_train)
+        X_train = scaler.transform(X_train)
+        X_assess = scaler.transform(X_assess)
+    else:
+        scaler = preprocessing.MaxAbsScaler().fit(X_train)
+        X_train = scaler.transform(X_train)
+        X_assess = scaler.transform(X_assess)
+
 
     # Train:      
     mod = train_func(X_train, y_train)

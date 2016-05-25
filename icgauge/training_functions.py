@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python
 
+
 from sklearn.linear_model import LogisticRegression
 from sklearn.grid_search import GridSearchCV
 import mord
 
 def fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid, 
-                                        scoring='f1_macro', verbose=False): 
+                                        scoring='r2', verbose=False):
     """Fit a classifier with hyperparmaters set via cross-validation.
 
     Parameters
@@ -27,9 +28,11 @@ def fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
         A dict whose keys name appropriate parameters for `basemod` and 
         whose values are lists of values to try.
         
-    scoring : value to optimize for (default: f1_macro)
-        Other options include 'accuracy' and 'f1_micro'. See
-        http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+    scoring : value to optimize for (default: accuracy)
+        What we optimize for.  Best to choose "accuracy" or "r2".
+        The F1 variants are meaningless for this problem since so few
+        models predict in every category. "roc_auc", "average_precision",
+        "log_loss" are unsupported.
             
     Prints
     ------
@@ -46,8 +49,10 @@ def fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
     crossvalidator = GridSearchCV(basemod, param_grid, cv=cv, scoring=scoring)
     crossvalidator.fit(X, y)
     # Report some information:
-    print("Best params", crossvalidator.best_params_)
-    print("Best score: %0.03f" % crossvalidator.best_score_)
+    for combination in crossvalidator.grid_scores_:
+        print combination
+    #print("Best params", crossvalidator.best_params_)
+    #print("Best score: %0.03f" % crossvalidator.best_score_)
     # Return the best model found:
     return crossvalidator.best_estimator_
 
@@ -161,8 +166,8 @@ def fit_logistic_at_with_crossvalidation(X, y, alpha = 1.0):
     """    
     
     basemod = mord.LogisticAT(alpha = alpha)
-    cv = 5
-    param_grid = {'alpha': [0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0]}    
+    cv = 3
+    param_grid = {'alpha': [0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0]}    
     return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
                                                verbose=False)
                                                
