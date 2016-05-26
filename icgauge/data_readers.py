@@ -79,3 +79,6 @@ def test_official():
     """ Returns a reader for the combined test data """
     return read_format(["data/test/test1.json_parsed.json"])
 
+def test_obama():
+    """ Returns a reader for Obama/McCain """
+    return read_format(["data/test/politicalrhetoric_complexitycoding.json_parsed.json"])

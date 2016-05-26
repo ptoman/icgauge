@@ -18,13 +18,13 @@ from icgauge import experiment_frameworks
 
 
 corr, alpha, conf_matrix, details = experiment_frameworks.experiment_features_iterated(
-    train_reader=icgauge.data_readers.train, 
-    assess_reader=icgauge.data_readers.dev, 
+    train_reader=icgauge.data_readers.train_and_dev, 
+    assess_reader=icgauge.data_readers.test, 
     train_size=0.7,
     phi_list=[icgauge.feature_extractors.all_features
              ], 
     class_func=icgauge.label_transformers.identity_class_func, #vs. ternary_class_func
-    train_func=icgauge.training_functions.fit_logistic_at,#_with_crossvalidation,
+    train_func=icgauge.training_functions.fit_logistic_at_6,#with_crossvalidation,
     score_func=scipy.stats.stats.pearsonr,
     verbose=False,
     iterations=1)
@@ -58,7 +58,54 @@ Using all feature functions.
   == Conclusions: ==
   ==================
 
-- best to use alpha = 6.0
+- Trying all alphas:
+   6.0 or 8.0, 8.0, 8.0, 6.0, 4.0, 3.0, 6.0, 4.0, 4.0
+    
+
+---------------------------
+Test results
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------------
+Test official
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------
+Obama/McCain
   
 """
 

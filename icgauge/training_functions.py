@@ -145,9 +145,12 @@ def fit_logistic_at(X, y, alpha = 1.0):
         higher values increate the squared l2 regularization.
     """    
     
-    basemod = mord.LogisticAT(alpha = 2.0)
+    basemod = mord.LogisticAT(alpha = alpha)
     basemod.fit(X,y)
     return basemod
+
+def fit_logistic_at_6(X, y):
+    return fit_logistic_at(X, y, 6.0)
 
 def fit_logistic_at_with_crossvalidation(X, y, alpha = 1.0):
     """An ordinal model of dataset with hyperparameter 
@@ -162,7 +165,7 @@ def fit_logistic_at_with_crossvalidation(X, y, alpha = 1.0):
     
     basemod = mord.LogisticAT(alpha = alpha)
     cv = 3
-    param_grid = {'alpha': [0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0]}    
+    param_grid = {'alpha': [0.2, 0.4, 0.6, 0.8, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0]}    
     return fit_classifier_with_crossvalidation(X, y, basemod, cv, param_grid,
                                                verbose=False)
                                                
