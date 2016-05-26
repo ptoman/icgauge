@@ -38,15 +38,29 @@ def get_manual_flags(level="all"):
     else:
         return []
         
-        
 def get_modals():
     """
     Returns a list of modal verbs in English.
     Note that "dare" and "need" are not always modal, but we include them
     regardless in case they are helpful.
     """
-    return ["can", "could", "may", "might", "must", "shall", "should", 
-            "will", "would", "ought", "had better", "dare", "need"]
+    return get_modals_definite() + get_modals_indefinite()
+
+def get_modals_definite():
+    """
+    Returns a list of modal verbs in English expressing definite intent.
+    Note that "dare" and "need" are not always modal, but we include them
+    regardless in case they are helpful.
+    """
+    return ["must", "shall", "should", "will", "ought", "had better", 
+            "dare", "need"]
+
+def get_modals_indefinite():
+    """
+    Returns a list of modal verbs in English expressing indefinite intent.
+    """
+    return ["can", "could", "may", "might"]
+
 
 def get_relative_amount():
     """

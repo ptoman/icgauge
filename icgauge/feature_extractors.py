@@ -88,7 +88,8 @@ def all_features(paragraph, parse):
 ##########################################
 def lexical_features(paragraph, parse):
   return get_morphological_counts(paragraph, parse) | \
-    modal_presence(paragraph, parse) | \
+    modal_definite_presence(paragraph, parse) | \
+    modal_indefinite_presence(paragraph, parse) | \
     relative_amount_presence(paragraph, parse) | \
     transitional_presence(paragraph, parse) | \
     hedge_presence(paragraph, parse) | \
@@ -515,18 +516,30 @@ def wordlist_presence(wordlist_func, paragraph):
     
     return presence
 
-def modal_presence(paragraph, unused_parse):
-    """ Calculates the presence of modals """
-    modals = wordlist_presence(utils_wordlists.get_modals, paragraph)
+def modal_definite_presence(paragraph, unused_parse):
+    """ Calculates the presence of definite modals """
+    modals = wordlist_presence(utils_wordlists.get_modals_definite, paragraph)
     tokens = word_tokenize(paragraph)
     
-    modals["modal_count_token"] = np.sum( \
+    modals["modal_def_count_token"] = np.sum( \
         [value for key, value in modals.items()])    
-    modals["modal_count_type"] = len(modals) - 1 # -1 bc *_count_token
-    modals["modal_freq"] = 1.0*modals["modal_count_token"] / len(tokens)
+    modals["modal_def_count_type"] = len(modals) - 1 # -1 bc *_count_token
+#    modals["modal_def_freq"] = 1.0*modals["modal_def_count_token"] / len(tokens)
     
     return modals
     
+def modal_indefinite_presence(paragraph, unused_parse):
+    """ Calculates the presence of definite modals """
+    modals = wordlist_presence(utils_wordlists.get_modals_indefinite, paragraph)
+    tokens = word_tokenize(paragraph)
+    
+    modals["modal_indef_count_token"] = np.sum( \
+        [value for key, value in modals.items()])    
+    modals["modal_indef_count_type"] = len(modals) - 1 # -1 bc *_count_token
+#    modals["modal_indef_freq"] = 1.0*modals["modal_indef_count_token"] / len(tokens)
+    
+    return modals
+
 def relative_amount_presence(paragraph, unused_parse):
     """ Calculates the presence of relative amount phrases """
     relamt = wordlist_presence(utils_wordlists.get_relative_amount, paragraph)

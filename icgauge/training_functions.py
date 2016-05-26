@@ -145,7 +145,7 @@ def fit_logistic_at(X, y, alpha = 1.0):
         higher values increate the squared l2 regularization.
     """    
     
-    basemod = mord.LogisticAT(alpha = alpha)
+    basemod = mord.LogisticAT(alpha = 2.0)
     basemod.fit(X,y)
     return basemod
 
