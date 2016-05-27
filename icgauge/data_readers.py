@@ -53,7 +53,7 @@ def read_format(src_filenames):
 
 def toy():
     """ Returns a reader for the toy data """
-    return read_format(["tests/toy.json"])
+    return read_format(["sample_data/toy.json"])
     
 def unscorable():
     """ Returns a reader for the unscoreable data """
@@ -82,3 +82,28 @@ def test_official():
 def test_obama():
     """ Returns a reader for Obama/McCain """
     return read_format(["data/test/politicalrhetoric_complexitycoding.json_parsed.json"])
+
+def train_practice():
+   """ Returns a reader for Practice Sets """
+   return read_format(["data/train/practice_sets1-10_final_second_full_test.json_parsed.json"])
+
+def train_oc():
+   """ Returns a reader for Christian """
+   return read_format(["data/train/OC_project_final.json_parsed.json"])
+
+def train_heritability():
+   """ Returns a reader for Reaction/Heritability """
+   return read_format(["data/train/reaction_time_study_FINAL_second_full_test.json_parsed.json"])
+
+def train_nixon():
+   """ Returns a reader for Nixon """
+   return read_format(["data/train/complexity_nixon_kennedy_FINAL.json_parsed.json"])
+
+
+def train_applause():
+   """ Returns a reader for Applause/Primaries """
+   return read_format(["data/train/applause_second_full_test.json_parsed.json"])
+
+def dev_bush():
+   """ Returns a reader for Bush/Kerry """
+   return read_format(["data/dev/bush_kerry_final_autoic.json_parsed.json"])
