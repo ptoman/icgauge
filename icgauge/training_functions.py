@@ -150,7 +150,7 @@ def fit_logistic_at(X, y, alpha = 1.0):
     return basemod
 
 def fit_logistic_at_6(X, y):
-    return fit_logistic_at(X, y, 6.0)
+    return fit_logistic_at(X, y, 0.5)
 
 def fit_logistic_at_with_crossvalidation(X, y, alpha = 1.0):
     """An ordinal model of dataset with hyperparameter 

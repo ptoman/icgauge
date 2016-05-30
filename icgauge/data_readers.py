@@ -105,5 +105,19 @@ def train_applause():
    return read_format(["data/train/applause_second_full_test.json_parsed.json"])
 
 def dev_bush():
-   """ Returns a reader for Bush/Kerry """
-   return read_format(["data/dev/bush_kerry_final_autoic.json_parsed.json"])
+    """ Returns a reader for Bush/Kerry """
+    return read_format(["data/dev/bush_kerry_final_autoic.json_parsed.json"])
+
+def punctuated_set():
+    """ Returns a reader for the punctuated dataset: practice set, test set
+    and toy dataset"""
+    return read_format(["sample_data/practice_sets1-10_final_punctuated.json_parsed.json", 
+        "sample_data/test1_punctuated.json_parsed.json", 
+        "sample_data/toy.json"])
+    
+def unpunctuated_set():
+    """ Returns a reader for the unpunctuated dataset: practice set, test set
+    and toy dataset"""
+    return read_format(["sample_data/practice_sets1-10_final_second_full_test.json_parsed.json",
+        "sample_data/test1.json_parsed.json",
+        "sample_data/toy_unpunctuated.json_parsed.json"])

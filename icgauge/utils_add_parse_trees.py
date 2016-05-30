@@ -20,7 +20,8 @@ def add_parse_trees():
                     dataset = json.load(json_file)
                     revised_items = []
                     for item in dataset:
-                        if "parse" not in item:
+                        print item["paragraph"]
+                        if "parse" not in item or item["parse"] == "":
                             print item
                             needs_new_file = True
                             tree_strings = [str(tree) for tree in get_trees_given_paragraph(item['paragraph'])]

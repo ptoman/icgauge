@@ -77,8 +77,9 @@ def all_features(paragraph, parse):
     syntactic_features(paragraph, parse) | \
     semcom_sentiment_features(paragraph, parse) | \
     semcom_pca_features(paragraph, parse) | \
-    semcom_lstm_features(paragraph, parse) | \
     semcom_ka_features(paragraph, parse)
+
+  # semcom_lstm_features(paragraph, parse) | \
 
 ##########################################
 # Sub-units (for ablation)
