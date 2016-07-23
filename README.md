@@ -22,3 +22,7 @@ To run all the experiments, you'll want to have the following environmental vari
 
 To run the toy experiment, use the following at this top-level directory:
     `python -m experiments.toy`
+
+License
+-------
+MIT license: If you use this code, you must attribute it.  Please also contribute your improvements back into the codebase.
