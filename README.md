@@ -7,11 +7,14 @@ Briefly, integrative complexity is a measurement of to what extent the writer is
 
 Integrative complexity has been studied within political psychology for over 40 years, and it has been shown to be useful in predicting violence and understanding elections.
 
-This project has four main directories:
+This project has five main directories:
 * experiments: Experiment scripts and notes, one experiment per file.
 * icgauge: Modeling package.  Contains experiment_frameworks (currently consisting only of experiment_features, a framework that expects a hand-provided set of feature functions), as well as support methods separated into their types: data_readers, feature_extractors, label_transformers, training_functions, and utils.
+* lstm: Modeling files for the LSTM developed as part of this work.
 * sample_data: Sample data supporting the framework.  Contains examples of each level of complexity.
-* tests: Contains an abuse of the testing framework to verify all data has the expected format, plus any actual tests that might get written.
+* tests: Contains a stretch of the testing framework to verify all data has the expected format.
+
+Documentation in the form of papers can be found in the deliverables folder.
 
 To run all the experiments, you'll want to have the following environmental variables set:
 * `GLV_HOME`: location of GloVe vector .txt files
