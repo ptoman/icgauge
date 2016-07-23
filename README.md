@@ -5,6 +5,8 @@ This project seeks to automatically measure integrative complexity (cognitive co
 
 Briefly, integrative complexity is a measurement of to what extent the writer is entertaining multiple perspectives as valid.  It is measured at the paragraph level using a 7-point scale in which 1 indicates "very little complexity" (more formally, only a single idea is entertained) and 7 indicates "extremely complexity" (more formally, at least two potentially conflicting ideas are entertained, developed, and acknowledged to be simultaneously true with a discussion of how they can both be true simultaneously).
 
+Integrative complexity has been studied within political psychology for over 40 years, and it has been shown to be useful in predicting violence and understanding elections.
+
 This project has four main directories:
 * experiments: Experiment scripts and notes, one experiment per file.
 * icgauge: Modeling package.  Contains experiment_frameworks (currently consisting only of experiment_features, a framework that expects a hand-provided set of feature functions), as well as support methods separated into their types: data_readers, feature_extractors, label_transformers, training_functions, and utils.
