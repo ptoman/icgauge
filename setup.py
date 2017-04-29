@@ -12,9 +12,11 @@ config = {
     'author_email': 'ptoman@stanford.edu',
     'packages': ['icgauge'],
     'install_requires': [
-        'numpy', 
-        'sklearn', 
-        'nltk'
+        'numpy',
+        'sklearn',
+        'nltk',
+        'scipy',
+        'matplotlib'
     ]
 }
 

@@ -19,7 +19,8 @@ Documentation in the form of papers can be found in the deliverables folder.
 
 To run all the experiments, you'll want to have the following environmental variables set:
 * `GLV_HOME`: location of GloVe vector .txt files
-* `STANFORD_NLP_HOME`: location of Stanford NLP .jar files
+* `STANFORD_NLP_PARSER`: location of Stanford NLP parser .jar file
+* `STANFORD_NLP_MODEL`: location of Stanford NLP model .jar file
 
 To run the toy experiment, use the following at this top-level directory:
     `python -m experiments.toy`

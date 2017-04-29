@@ -7,13 +7,18 @@ from nltk.tokenize import sent_tokenize
 from nltk import internals
 import os
 
-path_to_stanford_nlp = os.environ.get('STANFORD_NLP_HOME')
-if not path_to_stanford_nlp:
-  raise ImportError("STANFORD_NLP_HOME not defined as environmental variable")
+def get_env(name):
+  e = os.environ.get(name)
+  if not e:
+    raise ImportError("%s not defined as environmental variable" % name)
+
+  return e
+
+path_to_stanford_parser = get_env('STANFORD_NLP_PARSER')
+path_to_stanford_model = get_env('STANFORD_NLP_MODEL')
 
 
-english_parser = StanfordParser(os.path.join(path_to_stanford_nlp,'stanford-parser.jar'),
-                   os.path.join(path_to_stanford_nlp, 'stanford-parser-3.4.1-models.jar'))
+english_parser = StanfordParser(path_to_stanford_parser, path_to_stanford_model)
 
 # internals.config_java(options='-xmx2G')
 
@@ -40,13 +45,13 @@ def syntax_of_determiner_usage(paragraph, verbose=False):
   Returns:
     list of lists of tuples,
       For each determiner in the paragraph, returns a description of
-      the parsing path from sentence (S) to determiner. Each left 
-      tuple is a string representing the part of speech at that level, 
-      and each right tuple is an integer representing whether that unit 
+      the parsing path from sentence (S) to determiner. Each left
+      tuple is a string representing the part of speech at that level,
+      and each right tuple is an integer representing whether that unit
       is a left, middle, or right branch from its parent
 
   Example:
-    "The Saudi oil policy may look inconsistent to outsiders, but 
+    "The Saudi oil policy may look inconsistent to outsiders, but
      the appearance is misleading." -->
     [[(u'S', 0), (u'S', 0), (u'NP', 0), (u'DT', 0)],
      [(u'S', 0), (u'S', 3), (u'NP', 0), (u'DT', 0)]]
@@ -95,7 +100,7 @@ def get_neighbor_pos(pos):
   return neighbor
 
 def check_for_match(t, pos):
-  """ Helper function that returns if location `pos` in tree `t` is of type SBAR, 
+  """ Helper function that returns if location `pos` in tree `t` is of type SBAR,
   knowledge assumed, or old info.  If none, returns `None`."""
   try:
     label = t[pos].label()
@@ -116,7 +121,7 @@ def check_for_match(t, pos):
 
 def get_nouns_verbs(list_of_trees):
   """ Returns the noun and verb tokens in a sentence as tuples: (word, ['v'|'n']) """
-  ALLOWABLE = ['NN', 'NNS', 'NNP', 'NNPS', 
+  ALLOWABLE = ['NN', 'NNS', 'NNP', 'NNPS',
                'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
   sentence_tokens = []
   for source_tree in list_of_trees:
